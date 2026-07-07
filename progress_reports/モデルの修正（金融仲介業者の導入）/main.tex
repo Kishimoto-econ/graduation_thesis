@@ -7,7 +7,7 @@
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
-
+\usepackage{float}
 
 \title{
 \vspace{-4cm}
@@ -31,7 +31,7 @@
   \item Kiyotaki and Moore (1997)にGertler and Karadi (2011)の金融仲介業者（Financial intermediaries）を導入
   \item FarmerとGathererの利子率を区別
   \item Gatherの予算制約式に，金融仲介業者からの資産移転を追加（モデル構築の技術的に必要）
-  \item この変更により，変数$\chi_t, \nu_t, \eta_t, \zeta_t, N_t, \phi_t, N_e,t, N_n,t$と，パラメータ$\beta^{FI}, \theta, \rho, \omega$が増加
+  \item この変更により，変数$\chi_t, \nu_t, \eta_t, \zeta_t, N_t, \phi_t, N_{et}, N_{nt}$と，パラメータ$\beta^{FI}, \theta, \rho, \omega$が増加
 \end{itemize}
 
 \section{Farmer}
@@ -57,7 +57,7 @@
   \text{where} \quad & \Pi^\prime_t = (1-\theta-\omega) b_{t-1}
 \end{align}
 \begin{itemize}
-  \item 予算制約式に金融仲介業者からの資産移転$\Pi_t$を追加
+  \item 予算制約式に金融仲介業者からの資産移転$\Pi_t$を追加（モデル構築の技術的に必要）
   \item $\omega$は資産移転の額に関するパラメータ，$\theta$は金融仲介業者が存続する割合（詳しくはGertler and Karadi (2011)の研究ノートを参照）
 \end{itemize}
 オイラー方程式の変更はなし．
@@ -155,183 +155,68 @@
 
 \section{Full model}
 \subsection{Farmer}
-\begin{equation}
-q_t(k_t-k_{t-1})+R_tb_{t-1}+x_t-ck_{t-1}
-=
-ak_{t-1}+b_t
-\end{equation}
-
-\begin{equation}
-R_tb_t=q_{t+1}k_t
-\end{equation}
-
-\begin{equation}
-x_t=ck_{t-1}
-\end{equation}
-
-\begin{equation}
-1+\varphi_t
-=
-(\beta(1+\varphi_{t+1})+\mu_t)R_t
-\end{equation}
-
-\begin{equation}
-q_t(1+\varphi_t)+\beta c\varphi_{t+1}
-=
-\beta(1+\varphi_{t+1})(a+c+q_{t+1})
-+\mu_tq_{t+1}
-\end{equation}
+\begin{gather}
+  q_t(k_t-k_{t-1})+R_tb_{t-1}+x_t-ck_{t-1} = ak_{t-1}+b_t \\
+  R_tb_t = q_{t+1}k_t \\
+  x_t = ck_{t-1} \\
+  1+\varphi_t = (\beta(1+\varphi_{t+1})+\mu_t)R_t \\
+  q_t(1+\varphi_t)+\beta c\varphi_{t+1} = \beta(1+\varphi_{t+1})(a+c+q_{t+1})+\mu_tq_{t+1}
+\end{gather}
 
 \subsection{Gatherer}
-
-\begin{equation}
-q_t
-=
-\beta'
-\left[
-\alpha(z+k'_t)^{\alpha-1}
-+
-q_{t+1}
-\right]
-\end{equation}
+\begin{gather}
+  q_t = \beta'\left[\alpha(z+k'_t)^{\alpha-1}+q_{t+1}\right]
+\end{gather}
 
 \subsection{Financial intermediary}
-
-\begin{equation}
-\nu_t
-=
-E_t
-\left[
-(1-\theta)\beta^{FI}
-\left(
-R_{t+1}-\frac1{\beta'}
-\right)
-+\beta^{FI}\theta\chi_{t+1}\nu_{t+1}
-\right]
-\end{equation}
-
-\begin{equation}
-\eta_t
-=
-E_t
-\left[
-(1-\theta)
-+
-\beta^{FI}\theta
-\zeta_{t+1}\eta_{t+1}
-\right]
-\end{equation}
-
-\begin{equation}
-\phi_t
-=
-\frac{\eta_t}{\rho-\nu_t}.
-\end{equation}
-
-総量規制ショックを\eqref{eq:a}式に入れた
-\begin{equation} \label{eq:a}
-b_t
-=
-\phi_tN_t (1-\varepsilon_t)
-\end{equation}
-
-\begin{equation}
-\zeta_{t+1}
-=
-(R_{t+1}-\frac{1}{\beta'})
-\phi_t
-+\frac{1}{\beta'}
-\end{equation}
-
-\begin{equation}
-\chi_{t+1}
-=
-\frac{\phi_{t+1}}{\phi_t}
-\zeta_{t+1}
-\end{equation}
-
-\begin{equation}
-N_t
-=
-N_{et}
-+
-N_{nt}
-\end{equation}
-
-\begin{equation}
-N_{et}
-=
-\theta
-\left[
-(R_t-\frac{1}{\beta'})
-\phi_{t-1}
-+\frac{1}{\beta'}
-\right]
-N_{t-1}
-\end{equation}
-
-\begin{equation}
-N_{nt}
-=
-\omega b_{t-1}
-\end{equation}
+\begin{gather}
+  \nu_t = E_t\left[(1-\theta)\beta^{FI}\left(R_{t+1}-\frac1{\beta'}\right)+\beta^{FI}\theta\chi_{t+1}\nu_{t+1}\right] \\
+  \eta_t = E_t\left[(1-\theta)+\beta^{FI}\theta\zeta_{t+1}\eta_{t+1}\right] \\
+  \phi_t = \frac{\eta_t}{\rho-\nu_t} \\
+  b_t = \phi_tN_t(1-\varepsilon_t) \label{eq:a} \\
+  \zeta_{t+1} = (R_{t+1}-\frac{1}{\beta'})\phi_t+\frac{1}{\beta'} \\
+  \chi_{t+1} = \frac{\phi_{t+1}}{\phi_t}\zeta_{t+1} \\
+  N_t = N_{et}+N_{nt} \\
+  N_{et} = \theta\left[(R_t-\frac{1}{\beta'})\phi_{t-1}+\frac{1}{\beta'}\right]N_{t-1} \\
+  N_{nt} = \omega b_{t-1}
+\end{gather}
+※総量規制ショック$(1-\varepsilon_t)$を\eqref{eq:a}式に入れた．
 
 \subsection{Market clearing}
-
-\begin{equation}
-x_t
-+
-mx'_t
-+
-R_tb_{t-1}
-+
-\frac1{\beta'}b'_{t-1}
-=
-Y_t
-+
-m(1-\theta-\omega)b_{t-1}
-\end{equation}
-
-\begin{equation}
-Y_t
-=
-(a+c)k_{t-1}
-+
-m(z+k'_t)^{\alpha}
-\end{equation}
-
-\begin{equation}
-k_t
-+
-mk'_t
-=
-\bar K
-\end{equation}
-
-\begin{equation}
-  b_t + m b^\prime_t = 0
-\end{equation}
+\begin{gather}
+  x_t+mx'_t+R_tb_{t-1}+\frac1{\beta'}b'_{t-1} = Y_t+m(1-\theta-\omega)b_{t-1} \\
+  Y_t = (a+c)k_{t-1}+m(z+k'_t)^{\alpha} \\
+  k_t+mk'_t = \bar K \\
+  b_t+mb^\prime_t = 0
+\end{gather}
 
 \section{IRFの簡単な考察}
-※MATLABのfsolveで定常状態を数値的に見つけるとき初期値が必要になるが，今のところはモデルの実験段階なので，初期値についてはAIでパラメータの値と$R$の値を与えて概算的に計算させた．
 \begin{itemize}
-  \item 1期目のみであるが，Farmerの借入金$b$と不動産価格$q$が総量規制ショックによって下落
-  \item 2期目以降から戻っているのはFarmerの金利$R$が調整のために下落しているからである（Kiyotaki-Mooreではこれを防ぐために金利を固定化した）
-  \item よって，$R$を内生変数ではなく一定にしなければならないが，方程式と内生変数の数の問題がある
-  \item 加えて，公定歩合の引き上げでFarmerの金利が上昇したというショックを与えることができた場合，総量規制ショックの影響はさらに増幅される可能性がある
+  \item 1期目のみであるが，Farmerの借入金$b$と不動産価格$q$が総量規制ショック$(1-\varepsilon_t)$によって下落
+  \item 2期目以降から戻っているのは，ショックによって減少した貸出$b_t$を増加させる（定常状態に戻す）ために，Farmerの金利$R_t$が下落しているからである（Kiyotaki-Mooreモデルはこれを防ぐために金利を固定化した）
+  \item よって，$R$を内生変数ではなく一定にしなければならないが，一定にすると内生変数の数が1つ減るので，方程式を一本減らさなければならない（これが難しい）
   \item $R$の市場調整の動きを消せれば，目的のモデルが完成するかもしれない！！
+  \item 加えて，公定歩合の引き上げでFarmerの金利が上昇したというショックを与えることができた場合，総量規制ショックのみではショックは1期のみだが，公定歩合の引き上げによって総量規制ショックの影響が増幅されたというモデルを作ることもできる
 \end{itemize}
 
 \begin{figure}
   \centering
   \includegraphics[scale=0.8]{fig_1.png}
-  \label{fig:1}
 \end{figure}
+
 \begin{figure}
   \centering
   \includegraphics[scale=0.8]{fig_2.png}
-  \label{fig:2}
 \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.4]{fig_3.png}
+\end{figure}
+
+
+
+
 \end{document}
 
 
