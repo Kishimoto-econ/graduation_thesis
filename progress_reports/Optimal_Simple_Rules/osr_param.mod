@@ -214,22 +214,8 @@ resid;
 steady;
 check;
 
-stoch_simul(order=1,irf=200,ar=0,TeX)
+stoch_simul(order=1,irf=20,ar=0,TeX, nograph)
 q k R b x varphi mu kp chi nu eta zeta N phi Ne Nn xp bp Y
 ;
-
-optim_weights;
-    q   1;
-    Y   1;
-end;
-
-osr_params
-    eb_star
-    gamma_q
-    gamma_N
-    gamma_b
-;
-
-osr(irf=10);
 
 
