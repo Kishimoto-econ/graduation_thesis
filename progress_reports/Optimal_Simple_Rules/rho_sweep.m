@@ -3,12 +3,12 @@ close all
 
 dynare osr_param noclearall
 
-gamma_N_grid = -1:0.2:1;
-IRF = cell(length(gamma_N_grid),1);
+rho_grid = 0:0.2:1;
+IRF = cell(length(rho_grid),1);
 
-for i = 1:length(gamma_N_grid)
+for i = 1:length(rho_grid)
 
-    set_param_value('gamma_N',gamma_N_grid(i));
+    set_param_value('rho',rho_grid(i));
 
     try
         [info, oo_] = stoch_simul(M_,options_,oo_,var_list_);
@@ -16,7 +16,7 @@ for i = 1:length(gamma_N_grid)
     
     catch ME
         if info
-            fprintf('gamma_N=%4.2f failed\n',gamma_N_grid(i));
+            fprintf('rho=%4.2f failed\n',rho_grid(i));
             continue
         end
     end   
@@ -31,14 +31,14 @@ for v = 1:length(var_list)
     figure
     hold on
 
-    for i = 1:length(gamma_N_grid)
+    for i = 1:length(rho_grid)
         if ~isempty(IRF{i})
             plot(IRF{i}.([var_list{v} '_eN']), 'LineWidth', 2)
         end
     end
 
     title(var_list{v})
-    legend(compose('\\gamma_N=%.1f', gamma_N_grid), ...
+    legend(compose('\\rho=%.1f', rho_grid), ...
         "Position", [0.7724 0.5538 0.1110 0.2151])
     grid on
     hold off

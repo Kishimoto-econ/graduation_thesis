@@ -3,24 +3,25 @@ close all
 
 dynare osr_param noclearall
 
-gamma_q_grid = -0.3:0.1:0.3;
+gamma_q_grid = -1:0.2:1;
 IRF = cell(length(gamma_q_grid),1);
 
 for i = 1:length(gamma_q_grid)
 
     set_param_value('gamma_q',gamma_q_grid(i));
 
-    [info, oo_] = stoch_simul(M_,options_,oo_,var_list_);
-
-    if info
-        fprintf('gamma_q=%4.2f failed\n',gamma_q_grid(i));
-        continue
-    end
+    try
+        [info, oo_] = stoch_simul(M_,options_,oo_,var_list_);
+        steady;
     
-    steady;
+    catch ME
+        if info
+            fprintf('gamma_q=%4.2f failed\n',gamma_q_grid(i));
+            continue
+        end
+    end   
 
     IRF{i}=oo_.irfs;
-
 end
 
 var_list = {'Y','q','N','k','b','phi','mu'};

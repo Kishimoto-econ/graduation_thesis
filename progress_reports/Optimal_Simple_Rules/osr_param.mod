@@ -210,9 +210,7 @@ shocks;
     var eN = 0.01^2;
 end;
 
-resid;
 steady;
-check;
 
 stoch_simul(order=1,irf=20,ar=0,TeX, nograph)
 q k R b x varphi mu kp chi nu eta zeta N phi Ne Nn xp bp Y
