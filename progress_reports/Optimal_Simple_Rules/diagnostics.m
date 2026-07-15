@@ -1,1 +1,0 @@
-model_diagnostics(M_, options_, oo_);
