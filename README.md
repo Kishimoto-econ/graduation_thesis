@@ -9,4 +9,6 @@ Presentation history (progress)
   <li>May 27, 2026 @Graduate School of Economics, Toyo University</li>
   <li>June 1, 2026 @Affiliated seminar, Faculty of Economics, Toyo University</li>
   <li>June 16, 2026 @Department of Philosophy, Toyo University</li>
+  <li>July 6, 2026 @Affiliated seminar, Faculty of Economics, Toyo University</li>
+  <li>July 13, 2026 @Affiliated seminar, Faculty of Economics, Toyo University</li>
 </ul>
