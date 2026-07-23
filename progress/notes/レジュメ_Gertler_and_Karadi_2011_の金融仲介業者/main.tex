@@ -1,0 +1,207 @@
+\RequirePackage{plautopatch}
+\RequirePackage[l2tabu, orthodox]{nag}
+
+\documentclass[dvipdfmx]{jlreq}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue
+}
+
+% BibLaTeX
+\usepackage[
+    backend=biber,
+    style=authoryear,
+    citestyle=authoryear-comp,
+    bibstyle=authoryear-comp,
+    maxcitenames=3,
+    doi=true,
+    url=true,
+    isbn=false,
+    eprint=false
+]{biblatex}
+\addbibresource{literature.bib}
+\renewbibmacro{in:}{}
+\DeclareFieldFormat{url}{\url{#1}}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+\title{
+\vspace{-3cm}
+Gertler and Karadi (2011)の金融仲介業者
+}
+
+\author{
+  岸本康佑
+  \thanks{
+  Email: \texttt{s12102301404@toyo.jp}, \texttt{kishimoto.research@gmail.com} \\
+  GitHub: \url{https://github.com/Kishimoto-econ}
+}}
+\date{2026年7月}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本研究ノートは，\textcite{GK2011}の2.2節で導入された金融仲介業者(Financial intermediaries)について解説するものである．
+当該論文では，金融仲介業者のバランスシート，価値関数，誘引両立制約，レバレッジ制約，および資本の動学が簡潔に導出されている．
+本研究ノートでは，これらを日本語で整理し，各式の経済学的意味とモデルの構造を説明する．
+本研究ノートのみで金融仲介業者部門の構造を理解できるよう構成しているが，Dynareへの実装方法や詳細な数式展開については，必要に応じて\textcite{V2021}を参照されたい．
+\end{abstract}
+
+%本文開始
+\section*{2.2 Financial intermediaries}
+\subsection*{バランスシート条件}
+金融仲介業者は，家計から得た資金を非金融企業に貸し出す．
+
+$N_{jt}$を金融仲介業者$j$が$t$期に持っている資本，$B_{jt+1}$を家計から金融仲介業者に預けられた預金，$S_{jt}$を金融仲介者が保有する非金融企業に対する金融債権の数量，$Q_t$を各債権の相対価格とする．
+
+金融仲介業者のバランスシート条件は，
+\begin{equation}
+  Q_t S_{jt} = N_{jt} + B_{jt+1}
+\end{equation}
+となる．
+預金$B$のタイミングが$t+1$期なのは，来期にしなければならない返済の額面を表しているからである．
+左辺は金融仲介業者の資産（貸出），右辺は金融仲介業者の資本と負債（預金）である．
+すなわち，左辺は貸借対照表の借方，右辺は貸方に相当する．
+
+\subsection*{資本}
+金融仲介業者は負債（預金）に利子$R_t$を支払い，資産（貸出）から利子$R_{kt+1}$を受け取る．
+よって，資本はその収益差ということになるから，
+\begin{align}
+  N_{jt+1} &= R_{kt+1} Q_t S_{jt} - R_{t+1} B_{jt+1} \\
+  &= R_{kt+1} Q_t S_{jt} - R_{t+1} (Q_t S_{jt} - N_{jt}) \\
+  &= (R_{kt+1} - R_{t+1}) Q_t S_{jt} + R_{t+1} N_{jt} \label{eq:7}
+\end{align}
+となる．
+よって，無リスク金利$R_t$を超える収益はリスクプレミアム$R_{kt+1} - R_{t+1}$と資産の大きさ$Q_t S_{jt}$に依存していると言える．
+
+\subsection*{収益条件}
+金融仲介業者は，割引収益率が借入の割引コストを下回る資産に資金を提供しないから，金融仲介業者の割引率を確率的割引率$\beta^i \Lambda_{t,t+i}$とすると，
+\begin{equation}
+  \mathbb{E}_t \beta^i \Lambda_{t,t+1+i} (R_{kt+1+i} - R_{t+1+i}) \geq 0, \qquad i \geq 0
+\end{equation}
+が成り立つ必要がある．
+完全市場においては，この関係は常に等式で成り立ち，リスクプレミアムはゼロとなる．
+
+\subsection*{価値関数} \label{kati_kansuu}
+金融仲介業者の目標を期待割引生涯資本の合計を最大化することであるとすると，以下の価値関数が定式化される．
+\begin{align}
+  V_{jt} &= \max \, \mathbb{E}_t \sum_{i=0}^{\infty} (1-\theta) \theta^i \beta^{i+1} \Lambda_{t,t+1+i} (N_{jt+1+i}) \\
+  &= \max \, \mathbb{E}_t \sum_{i=0}^{\infty} (1-\theta) \theta^i \beta^{i+1} \Lambda_{t,t+1+i} [(R_{kt+1+i} - R_{t+1+i}) Q_{t+i} S_{jt+i} + R_{t+1+i} N_{jt+i}]
+\end{align}
+ただし，金融仲介業者が時間の経過とともに自己資本だけで全ての投資を賄えるようになることを防ぐため，$(1 - \theta)$の確率で金融仲介業者を辞めて労働者になると仮定する．
+つまり，$\theta^i$は金融仲介業者が$i$期間存続する確率を，$(1-\theta) \theta^i$は$i$期後に労働者に変更になる確率を表している．
+
+\subsection*{誘因両立制約（インセンティブ制約，Incentive constraint）}
+金融仲介業者は貸出を行うが，貸出金（資産）$Q_t S_{jt}$のうちすぐに回収できる割合$\lambda$が金融仲介業者の価値（期待生涯資本の合計）よりも大きい場合，金融仲介業者は倒産した方が儲かる．
+
+これを防ぐために，以下の誘因両立制約（Incentive constraint）を導入する．
+\begin{equation}
+  V_{jt} \geq \lambda Q_t S_{jt} \label{eq:9}
+\end{equation}
+
+ここで，先程の価値関数を以下のように書き直す．
+\begin{align}
+  V_{jt} &= \nu_t \cdot Q_t S_{jt} + \eta_t N_{jt} \label{eq:10} \\
+  &with \notag \\
+  \nu_t &= \mathbb{E}_t \{(1-\theta) \beta \Lambda_{t,t+1} (R_{kt+1} - R_{t+1}) + \beta \Lambda_{t,t+1} \theta \chi_{t,t+1} \nu_{t+1}\} \\
+  \eta_t &= \mathbb{E}_t \{(1-\theta) + \beta \Lambda_{t,t+1} \theta z_{t,t+1} \eta_{t+1}\} \\
+  &where \notag \\
+  \chi_{t,t+i} &\equiv \frac{Q_{t+i} S_{jt+i}}{Q_t S_{jt}} \\
+  z_{t,t+i} &\equiv \frac{N_{jt+i}}{N_{jt}}
+\end{align}
+$\chi_{t,t+i}$は$t$期から$t+i$期までの資産（貸出）の成長率，$z_{t,t+i}$は資本の成長率を表す．
+また，変数$\nu_t$は資本$N_{jt}$を一定に保ちながら資産$Q_t S_{jt}$を単位拡大した場合の銀行家への期待割引限界収益の解釈を持ち，$\eta_t$は$S_{jt}$を一定に保ったまま$N_{jt}$をもう1単位保有した場合の期待割引価値である．
+
+この式の導出の説明は，\textcite{GK2011}では行われていない．
+導出については\textcite{V2021}を参照せよ．
+
+\eqref{eq:9}式を\eqref{eq:10}式に代入すると，誘引両立制約
+\begin{equation}
+  \eta_t N_{jt} + \nu_t Q_t S_{jt} \geq \lambda Q_t S_{jt}
+\end{equation}
+が得られた．
+
+この制約が等号で成り立つ場合，金融仲介業者が取得できる資産$Q_t S_{jt}$は資本$N_{jt}$に正比例すると言えるから，
+\begin{equation} \label{eq:13}
+  Q_t S_{jt} = \frac{\eta_t}{\lambda-\nu_t} N_{jt} = \phi_t N_{jt}
+\end{equation}
+となる．
+$\phi_t$は資産と資本の比率であり，これはレバレッジ比率を意味している．
+この制約は，金融仲介業者の倒産のインセンティブ$\phi_t N_{jt}$がコスト$Q_t S_{jt}$と完全に均衡する点まで，仲介者のレバレッジ比率$\phi_t$を制限するということを表している．
+
+\subsection*{資本の動学}
+\eqref{eq:13}式を\eqref{eq:7}式に代入すると，以下のような資本の動学方程式が得られる．
+\begin{equation} \label{eq:14}
+  N_{jt+1} = [(R_{kt+1} - R_{t+1}) \phi_t + R_{t+1}] N_{jt}
+\end{equation}
+資本$N_t$の変動はリスクプレミアム$(R_{kt+1} - R_{t+1})$に正比例し，その大きさはレバレッジ比率$\phi_t$に依存している．
+
+よって，
+\begin{align}
+  z_{t,t+1} &= N_{jt+1} / N_{jt} = (R_{kt+1} - R_{t+1}) \phi_t + R_{t+1} \\
+  \chi_{t,t+1} &= Q_{t+1} S_{jt+2} / Q_t S_{t+1} = (\phi_{t+1} / \phi_t) (N_{jt+1} / N_t) = (\phi_{t+1} / \phi_t) z_{t,t+1}
+\end{align}
+が成り立つ．
+
+レバレッジ比率$\phi_t$はどの金融仲介業者でも同じであるとしているので，\eqref{eq:13}式を経済全体で集計すると，
+\begin{equation}
+  Q_t S_t = \phi_t N_t
+\end{equation}
+となる．
+$S_t$と$N_t$はそれぞれ，すべての金融仲介業者が保有する金融債権の量と資本である．
+
+\subsection*{金融仲介業者の入れ替わり}
+価値関数の節で，金融仲介業者は$(1-\theta)$の割合で労働者に変更になり，$\theta$の割合で存続すると述べた．
+そこで，$N_{et}$を以前から存在する金融仲介業者の資本の集計，$N_{nt}$を新規の金融仲介業者の資本の集計とすると，
+\begin{equation} \label{eq:16}
+  N_t = N_{et} + N_{nt}
+\end{equation}
+が成り立つ．
+
+$\theta$の割合だけ金融仲介業者は$t-1$期から$t$期まで生き残るから，\eqref{eq:14}式より，
+\begin{equation} \label{eq:17}
+  N_{et} = \theta [(R_{kt} - R_t) \phi_{t-1} + R_t] N_{t-1}
+\end{equation}
+が成り立つ．
+
+労働者に変更になる金融仲介業者の資産$(1-\theta) Q_t S_{t-1}$は家計に移転される．
+それと同時に，新規参入の金融仲介業者は家計からスタートアップの資金を移転されるとする．
+その額を金融仲介業者から家計に移転される額の$\omega / (1-\theta)$倍とすると，
+\begin{align}
+  N_{nt} &= \frac{\omega}{(1-\theta)} (1-\theta) Q_t S_{t-1} \\
+  &= \omega Q_t S_{t-1} \label{eq:18}
+\end{align}
+が得られる．
+
+最後に，\eqref{eq:17}式と\eqref{eq:18}式を\eqref{eq:16}式に代入すると，
+\begin{equation}
+  N_t = \theta [(R_{kt} - R_t) \phi_{t-1} + R_t] N_{t-1} + \omega Q_t S_{t-1}
+\end{equation}
+が得られた．
+この式より，金融仲介業者の資本$N_t$は，家計に変更になる金融仲介業者の保有資産額$Q_t S_{t-1}$に影響されることが分かる．
+
+%参考文献
+\nocite{*}
+\printbibliography
+
+\end{document}
+
+
+
+
+
+
+
+

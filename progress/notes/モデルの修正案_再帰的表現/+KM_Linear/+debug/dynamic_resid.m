@@ -1,0 +1,27 @@
+function [lhs, rhs] = dynamic_resid(y, x, params, steady_state)
+T = NaN(2, 1);
+lhs = NaN(10, 1);
+rhs = NaN(10, 1);
+T(1) = params(10)*params(4)*params(1)*(params(1)-1)*(params(8)+params(10))^(params(1)-2);
+T(2) = params(10)*params(1)*params(2)*(params(8)+params(10))^(params(1)-1);
+lhs(1) = params(12)*params(9)*y(13)+params(11)/params(4)*y(5)+params(13)*y(16);
+rhs(1) = (params(12)*params(9)+params(9)*(params(6)+params(7)))*y(3)+params(11)*y(15);
+lhs(2) = y(15);
+rhs(2) = y(13)+y(21)-x(1);
+lhs(3) = y(16);
+rhs(3) = y(3);
+lhs(4) = y(12);
+rhs(4) = params(5)/params(4)*y(22)+1/params(4)*y(18);
+lhs(5) = params(12)*(1+params(16))*y(11)+params(12)*y(12)+y(22)*params(7)*params(5);
+rhs(5) = y(21)*params(12)*(params(5)*(1+params(16))+params(15))+y(22)*params(5)*(params(12)+params(6)+params(7))+y(18)*params(12)*params(15)-x(1)*params(12)*params(15);
+lhs(6) = params(12)*y(11);
+rhs(6) = T(1)*y(14)+y(21)*params(12)*params(4);
+lhs(7) = params(13)*y(16)+params(2)*params(14)*y(17);
+rhs(7) = params(9)*(params(6)+params(7))*y(3)+T(2)*y(4);
+lhs(8) = params(9)*y(13)+y(14)*params(10)*params(2);
+rhs(8) = 0;
+lhs(9) = y(19);
+rhs(9) = y(16)+params(2)*y(17);
+lhs(10) = y(20);
+rhs(10) = y(19);
+end
