@@ -1,8 +1,6 @@
 *.mat
 *.log
 
-.gitignore
-
 reference/
 
 progress/code/Kiyotaki_Moore_1997/
