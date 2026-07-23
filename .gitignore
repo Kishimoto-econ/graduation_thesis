@@ -1,11 +1,15 @@
+# Ignore logs
 *.mat
 *.log
 +*/
 
+# because of Copyright
 reference/
 
+# because of license
 progress/code/Kiyotaki_Moore_1997/
 progress/code/Iacoviello_2005/
 progress/code/Gertler_and_Karadi_2011/
 progress/data/
 progress/notes/外木先生/
+
