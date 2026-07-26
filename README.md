@@ -12,7 +12,3 @@ Presentation history (progress)
   <li>July 6, 2026 @Affiliated seminar, Faculty of Economics, Toyo University</li>
   <li>July 13, 2026 @Affiliated seminar, Faculty of Economics, Toyo University</li>
 </ul>
-
-
-
-
