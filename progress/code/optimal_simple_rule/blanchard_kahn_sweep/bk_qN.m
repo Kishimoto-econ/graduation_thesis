@@ -48,6 +48,6 @@ title('Region satisfying BK conditions')
 grid on
 box on
 
-cd C:\Users\Kohsu\OneDrive\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep\output
+cd C:\Users\Kohsu\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep\output
 saveas(gcf,'bk_qN.png')
-cd C:\Users\Kohsu\OneDrive\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep
+cd C:\Users\Kohsu\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep
