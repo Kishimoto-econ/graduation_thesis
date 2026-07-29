@@ -1,4 +1,4 @@
-clear
+close all;
 
 var
     q
@@ -28,10 +28,9 @@ var
 
 varexo 
     eN      $\varepsilon^N$
-    eY
 ;
 
-parameters
+parameters 
     beta        // Discount factor of Farmer
     betap       // Discount factor of Gatherer
     betaFI      // Discount factor of FI
@@ -95,30 +94,57 @@ parameters
     gamma_b = -0.1;
     Kbar    = 1;
 
-    A               = rho*betaFI*theta^2;
-    B               = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
-    C               = rho - omega*(1-theta)*(1-betaFI/betap);
+    A       = rho*betaFI*theta^2;
+    B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
+    C       = rho - omega*(1-theta)*(1-betaFI/betap);
 
+    // Steady state Values
+    eb_ss           = 0;
+    zeta_ss         = (-B - sqrt((B^2 - 4*A*C))) / (2*A);
+    phi_ss          = (1-theta*zeta_ss) / omega;
+    eta_ss          = (1-theta)/(1-betaFI*theta*zeta_ss);
+    chi_ss          = zeta_ss;
+    nu_ss           = eta_ss * betaFI * (zeta_ss-1/betap)/phi_ss;
+    R_ss            = (zeta_ss-1/betap)/phi_ss + 1/betap;
+    q_ss            = a*R_ss / (R_ss-1);
+    kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1)) - z;
+    k_ss            = Kbar - m*kp_ss;
+    b_ss            = q_ss*k_ss/R_ss;
+    N_ss            = b_ss/phi_ss;
+    Nn_ss           = omega*b_ss;
+    Ne_ss           = N_ss - Nn_ss;
+    x_ss            = c*k_ss;
+    Y_ss            = (a+c)*k_ss + m*(z+kp_ss)^alpha;
+    varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
+    mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
+    bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
+    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
 
 model;
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) + R * b(-1) + x  = (1-eY(+1))*(a+c) * k(-1) + b;
+    q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
 
-    // (2) Farmer: Borrowing constraint
+    // (2) Farmer: Borrowing constraint (Occbin)
+    [name = 'borrowing', relax = 'borrowing_slack']
     R(+1) * b = q(+1) * k;
+    [name = 'borrowing', bind = 'borrowing_slack']
+    mu = 0;
 
-    // (3) Farmer: Consumption
+    // (3) Farmer: Consumption constraint (Occbin)
+    [name = 'consumption', relax = 'cons_slack']
     x = c * k(-1);
+    [name = 'consumption', bind = 'cons_slack']
+    varphi = 0;
 
     // (4) Farmer: 自家消費制約のオイラー方程式
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
     // (5) Farmer: 不動産価格のオイラー方程式
-    q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
+    q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * (a + c + q(+1)) + mu * q(+1);
 
-    // (6) Gatherer: Asset pricing
-    q = betap * ((1-eY(+1))*alpha * (z + kp)^(alpha - 1) + q(+1));
+    // (6) Gatherer: Asset pricingのオイラー方程式
+    q = betap * (alpha * (z + kp)^(alpha - 1) + q(+1));
 
     // (7) FI: Marginal value of net worth
     nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
@@ -142,7 +168,7 @@ model;
     chi = phi / phi(-1) * zeta;
 
     // (14) FI: Total net worth
-    N = (Ne + Nn);
+    N = Ne + Nn;
 
     // (15) FI: Existing bankers' net worth with NPL shock
     Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1)*(1-eN);
@@ -154,7 +180,7 @@ model;
     x + m * xp + R*b(-1) + m*bp(-1) / betap = Y + m * (1 - theta - omega) * b(-1);
 
     // (18) Market clearing: Total output
-    Y = (1-eY)*(a + c) * k(-1) + m *(1-eY)* (z + kp(-1))^alpha;
+    Y = (a + c) * k(-1) + m * (z + kp(-1))^alpha;
 
     // (19) Market clearing: Capital
     k + m * kp = Kbar;
@@ -164,36 +190,20 @@ model;
 
 end;
 
+// Occbin 制約条件の設定
+occbin_constraints;
+    // 借入制約の非バインド条件
+    name 'borrowing_slack';
+    bind mu < 0;
+    relax R(+1)*b <= q(+1)*k;
 
-steady_state_model;
-    // Substitute Parameters
-    A               = rho*betaFI*theta^2;
-    B               = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
-    C               = rho - omega*(1-theta)*(1-betaFI/betap);
+    // 消費制約の非バインド条件
+    name 'cons_slack';
+    bind varphi < 0;
+    relax x >= c*k(-1);
+end;
 
-    // Steady State Parameters
-    eb_ss           = 0;
-    zeta_ss         = (-B - sqrt((B^2 - 4*A*C))) / (2*A);
-    phi_ss          = (1-theta*zeta_ss) / omega;
-    eta_ss          = (1-theta)/(1-betaFI*theta*zeta_ss);
-    chi_ss          = zeta_ss;
-    nu_ss           = eta_ss * betaFI * (zeta_ss-1/betap)/phi_ss;
-    R_ss            = (zeta_ss-1/betap)/phi_ss + 1/betap;
-    q_ss            = a*R_ss / (R_ss-1);
-    kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1)) - z;
-    k_ss            = Kbar - m*kp_ss;
-    b_ss            = q_ss*k_ss/R_ss;
-    N_ss            = b_ss/phi_ss;
-    Nn_ss           = omega*b_ss;
-    Ne_ss           = N_ss - Nn_ss;
-    x_ss            = c*k_ss;
-    Y_ss            = (a+c)*k_ss + m*(z+kp_ss)^alpha;
-    varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
-    mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
-
-    // Endogenous variables
+initval;
     q       = q_ss;
     k       = k_ss;
     R       = R_ss;
@@ -216,28 +226,20 @@ steady_state_model;
     eb      = eb_ss;
 end;
 
-estimated_params;
-    // Structural parameters
-    a,        normal_pdf, 0.7,   0.1;
-    c,        normal_pdf, 0.3,   0.1;
-    
-    // omegaの平均値を0.002に、標準偏差を0.001に変更（0.038を超えないようにタイトにする）
-    omega,    beta_pdf,   0.002, 0.001; 
-    
-    // rhoの平均値も今回うまくいった0.4周辺に変更
-    rho,      beta_pdf,   0.4,   0.1;
-    
-    // Policy parameters
-    gamma_q,  normal_pdf, -0.1,  0.2;
-    gamma_N,  normal_pdf,  0.1,  0.2;
-    gamma_b,  normal_pdf, -0.1,  0.2;
-    
-    stderr eN, inv_gamma_pdf, 1, 0.5;
-    stderr eY, inv_gamma_pdf, 1, 0.5;
+shocks;
+    var eN = 0.01^2;
 end;
-varobs Y R;
 
-estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check);
+steady;
+check;
 
+// Occbin によるシミュレーション実行設定
+shocks(surprises);
+    var eN;
+    periods 1;
+    values 0.01;
+end;
 
+occbin_setup(simul_periods=100);
+occbin_solver;
+occbin_graph q k R b x mu varphi Y;
