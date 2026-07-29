@@ -1,5 +1,3 @@
-clear
-
 var
     q
     k
@@ -23,7 +21,10 @@ var
     xp      $x^\prime$
     bp      $b^\prime$
     Y
+    
     eb      $\varepsilon^b$
+
+    Y_obs
 ;
 
 varexo 
@@ -101,6 +102,9 @@ parameters
 
 
 model;
+    
+    // 観測方程式
+    Y_obs = log(Y) - log(Y(-1));
 
     // (1) Farmer: Budget constraint
     q * (k - k(-1)) + R * b(-1) + x  = (1-eY(+1))*(a+c) * k(-1) + b;
@@ -217,27 +221,25 @@ steady_state_model;
 end;
 
 estimated_params;
-    // Structural parameters
-    a,        normal_pdf, 0.7,   0.1;
-    c,        normal_pdf, 0.3,   0.1;
-    
-    // omegaの平均値を0.002に、標準偏差を0.001に変更（0.038を超えないようにタイトにする）
-    omega,    beta_pdf,   0.002, 0.001; 
-    
-    // rhoの平均値も今回うまくいった0.4周辺に変更
-    rho,      beta_pdf,   0.4,   0.1;
-    
+
     // Policy parameters
     gamma_q,  normal_pdf, -0.1,  0.2;
     gamma_N,  normal_pdf,  0.1,  0.2;
     gamma_b,  normal_pdf, -0.1,  0.2;
     
-    stderr eN, inv_gamma_pdf, 1, 0.5;
-    stderr eY, inv_gamma_pdf, 1, 0.5;
+    stderr eN, inv_gamma_pdf, 0.3, 0.05;
+    stderr eY, inv_gamma_pdf, 0.3, 0.05;
 end;
-varobs Y R;
+
+varobs Y_obs R;
+
+identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 6, mode_check);
+
+stoch_simul(order=1,irf=100,ar=0,TeX)
+q k R b x varphi mu kp chi nu eta zeta N phi Ne Nn xp bp Y
+;
 
 

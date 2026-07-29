@@ -23,7 +23,13 @@ var
     xp      $x^\prime$
     bp      $b^\prime$
     Y
+    
     eb      $\varepsilon^b$
+
+    // 補助変数
+    R_f
+    q_f
+    k_p
 ;
 
 varexo 
@@ -89,9 +95,9 @@ parameters
     omega   = 0.002;
     rho     = 0.4;
     m       = 0.5;
-    gamma_q = -0.1;
+    gamma_q = 0.1;
     gamma_N = 0.1;
-    gamma_b = -0.1;
+    gamma_b = 0.1;
     Kbar    = 1;
 
     A       = rho*betaFI*theta^2;
@@ -120,22 +126,27 @@ parameters
     bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
     xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
 
-model;
+model(use_dll);
+
+    // 補助変数
+    R_f = R(+1);
+    q_f = q(+1);
+    k_p = k(-1);
 
     // (1) Farmer: Budget constraint
     q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint (Occbin)
     [name = 'borrowing', relax = 'borrowing_slack']
-    R(+1) * b = q(+1) * k;
-    [name = 'borrowing', bind = 'borrowing_slack']
     mu = 0;
+    [name = 'borrowing', bind = 'borrowing_slack']
+    R_f * b = q_f * k;
 
     // (3) Farmer: Consumption constraint (Occbin)
     [name = 'consumption', relax = 'cons_slack']
-    x = c * k(-1);
-    [name = 'consumption', bind = 'cons_slack']
     varphi = 0;
+    [name = 'consumption', bind = 'cons_slack']
+    x = c * k(-1);
 
     // (4) Farmer: 自家消費制約のオイラー方程式
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
@@ -194,13 +205,13 @@ end;
 occbin_constraints;
     // 借入制約の非バインド条件
     name 'borrowing_slack';
-    bind mu < 0;
-    relax R(+1)*b <= q(+1)*k;
+    bind R_f*b > q_f*k;
+    relax mu < 0;
 
     // 消費制約の非バインド条件
     name 'cons_slack';
-    bind varphi < 0;
-    relax x >= c*k(-1);
+    bind x < c*k_p;
+    relax varphi < 0;
 end;
 
 initval;
@@ -234,12 +245,12 @@ steady;
 check;
 
 // Occbin によるシミュレーション実行設定
-shocks(surprises);
+shocks(surprise);
     var eN;
     periods 1;
     values 0.01;
 end;
 
-occbin_setup(simul_periods=100);
+occbin_setup(simul_periods=100, simul_maxit=200, simul_check_ahead_periods=200);
 occbin_solver;
 occbin_graph q k R b x mu varphi Y;
