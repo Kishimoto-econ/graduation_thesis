@@ -27,7 +27,7 @@ var
     // 補助変数
     R_f
     q_f
-    k_p
+    //k_p
 ;
 
 varexo 
@@ -122,28 +122,28 @@ parameters
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
     bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
+    xp_ss           = (z + kp_ss)^alpha + (1-theta-omega) * b_ss + bp_ss - bp_ss / betap;
 
 model;
 
     // 補助変数
     R_f = R(+1);
     q_f = q(+1);
-    k_p = k(-1);
+    //k_p = k(-1);
 
     // (1) Farmer: Budget constraint
     q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint (Occbin)
-    [name = 'borrowing', relax = 'borrowing']
-    mu = 0;
     [name = 'borrowing', bind = 'borrowing']
+    mu = 0;
+    [name = 'borrowing', relax = 'borrowing']
     R_f * b = q_f * k;
 
     // (3) Farmer: Consumption constraint (Occbin)
-    [name = 'consumption', relax = 'cons']
-    varphi = 0;
-    [name = 'consumption', bind = 'cons']
+    //[name = 'consumption', bind = 'cons']
+    //varphi = 0;
+    //[name = 'consumption', relax = 'cons']
     x = c * k(-1);
 
     // (4) Farmer: 自家消費制約のオイラー方程式
@@ -203,15 +203,14 @@ end;
 occbin_constraints;
     // 借入制約の非バインド条件
     name 'borrowing';
-    bind mu < 0;
-    relax R_ss*b + b_ss*R_f - R_ss*b_ss < q_ss*k + k_ss*q_f - q_ss*k_ss;
-    //relax R_f * b < q_f * k;
+    relax mu < 0;
+    bind R_ss*b + b_ss*R_f - R_ss*b_ss < q_ss*k + k_ss*q_f - q_ss*k_ss;
 
     // 消費制約の非バインド条件
-    name 'cons';
-    bind varphi < 0;
-    relax x > c*k_p;
-end;
+    //name 'cons';
+    //relax varphi < 0;
+    //bind x > c*k_p;
+end;    
 
 initval;
     q       = q_ss;
