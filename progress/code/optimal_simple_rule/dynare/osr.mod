@@ -30,7 +30,7 @@ varexo
     eN      $\varepsilon^N$
 ;
 
-parameters 
+parameters
     beta        // Discount factor of Farmer
     betap       // Discount factor of Gatherer
     betaFI      // Discount factor of FI
@@ -78,12 +78,12 @@ parameters
 ;
 
     // values
-    beta    = 0.99;
-    betap   = 0.98;
-    betaFI  = (beta+betap)/2;
+    beta    = 0.98; //beta=0.98, betap=0.99にすれば，muが正になる
+    betap   = 0.99;
+    betaFI  = 0.985;
     alpha   = 1/3;
     a       = 0.7;
-    c       = 0.3;
+    c       = 0.4;
     z       = 0.01;
     theta   = 0.95;
     omega   = 0.002;
@@ -93,7 +93,6 @@ parameters
     gamma_N = 0.1;
     gamma_b = -0.1;
     Kbar    = 1;
-
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
     C       = rho - omega*(1-theta)*(1-betaFI/betap);
@@ -118,7 +117,7 @@ parameters
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
     bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
+    xp_ss           = (z + kp_ss)^alpha + (1-theta-omega) * b_ss + bp_ss - bp_ss / betap;
 
 model;
 
@@ -128,7 +127,7 @@ model;
     // (2) Farmer: Borrowing constraint
     R(+1) * b = q(+1) * k;
 
-    // (3) Farmer: Consumption constraint
+    // (3) Farmer: Consumption
     x = c * k(-1);
 
     // (4) Farmer: 自家消費制約のオイラー方程式
@@ -137,7 +136,7 @@ model;
     // (5) Farmer: 不動産価格のオイラー方程式
     q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * (a + c + q(+1)) + mu * q(+1);
 
-    // (6) Gatherer: Asset pricingのオイラー方程式
+    // (6) Gatherer: Asset pricing
     q = betap * (alpha * (z + kp)^(alpha - 1) + q(+1));
 
     // (7) FI: Marginal value of net worth
@@ -162,7 +161,7 @@ model;
     chi = phi / phi(-1) * zeta;
 
     // (14) FI: Total net worth
-    N = Ne + Nn;
+    N = (Ne + Nn);
 
     // (15) FI: Existing bankers' net worth with NPL shock
     Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1)*(1-eN);
@@ -171,7 +170,8 @@ model;
     Nn = omega * b(-1);
 
     // (17) Market clearing: Resource constraint
-    x + m * xp + R*b(-1) + m*bp(-1) / betap = Y + m * (1 - theta - omega) * b(-1);
+    q * (kp-kp(-1)) + bp(-1) / betap + xp = (z + kp(-1))^alpha + (1-theta-omega) * b(-1) + bp;
+    // x + m * xp + R*b(-1) + m*bp(-1) / betap = Y + m * (1 - theta - omega) * b(-1);
 
     // (18) Market clearing: Total output
     Y = (a + c) * k(-1) + m * (z + kp(-1))^alpha;
@@ -215,7 +215,7 @@ resid;
 steady;
 check;
 
-stoch_simul(order=1,irf=100,ar=0,TeX)
+stoch_simul(order=1,irf=100,ar=0,TeX, nograph)
 q k R b x varphi mu kp chi nu eta zeta N phi Ne Nn xp bp Y
 ;
 
@@ -230,6 +230,6 @@ osr_params
     gamma_b
 ;
 
-osr(irf=100);
+osr(irf=100, nograph);
 
 

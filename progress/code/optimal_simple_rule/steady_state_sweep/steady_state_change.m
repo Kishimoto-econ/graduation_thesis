@@ -27,7 +27,7 @@ for i = 1:nrho
     
 end
 
-var_list = {'Y','q','N','k','b'};
+var_list = {'xp'};
 
 for v = 1:length(var_list)
 

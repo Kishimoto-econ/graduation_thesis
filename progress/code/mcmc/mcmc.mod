@@ -101,7 +101,7 @@ parameters
     C               = rho - omega*(1-theta)*(1-betaFI/betap);
 
 
-model;
+model(use_dll);
     
     // 観測方程式
     Y_obs = log(Y) - log(Y(-1));
@@ -227,8 +227,8 @@ estimated_params;
     gamma_N,  normal_pdf,  0.1,  0.2;
     gamma_b,  normal_pdf, -0.1,  0.2;
     
-    stderr eN, inv_gamma_pdf, 0.3, 0.05;
-    stderr eY, inv_gamma_pdf, 0.3, 0.05;
+    stderr eN, inv_gamma_pdf, 0.1, 0.05;
+    stderr eY, inv_gamma_pdf, 0.1, 0.05;
 end;
 
 varobs Y_obs R;

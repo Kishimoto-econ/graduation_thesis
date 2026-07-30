@@ -1,0 +1,1 @@
+void dynamic_g3(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, const double *restrict T, double *restrict g3_i, double *restrict g3_j, double *restrict g3_v);

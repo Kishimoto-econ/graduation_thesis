@@ -76,7 +76,7 @@ parameters
 ;
 
     // values
-    beta    = 0.99;
+    beta    = 0.99; //beta=0.98, betap=0.99にすれば，muが正になる
     betap   = 0.98;
     betaFI  = 0.985;
     alpha   = 1/3;
@@ -115,7 +115,7 @@ parameters
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
     bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
+    xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m*bp_ss/betap)/m;
 
 model;
 

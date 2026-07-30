@@ -1,5 +1,3 @@
-close all;
-
 var
     q
     k
@@ -86,7 +84,7 @@ parameters
     // values
     beta    = 0.99;
     betap   = 0.98;
-    betaFI  = (beta+betap)/2;
+    betaFI  = 0.985;
     alpha   = 1/3;
     a       = 0.7;
     c       = 0.3;
@@ -95,9 +93,9 @@ parameters
     omega   = 0.002;
     rho     = 0.4;
     m       = 0.5;
-    gamma_q = 0.1;
+    gamma_q = -0.1;
     gamma_N = 0.1;
-    gamma_b = 0.1;
+    gamma_b = -0.1;
     Kbar    = 1;
 
     A       = rho*betaFI*theta^2;
@@ -126,7 +124,7 @@ parameters
     bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
     xp_ss           = (Y_ss + m*(1-theta-omega)*b_ss - x_ss - R_ss*b_ss-m/betap*bp_ss)/m;
 
-model(use_dll);
+model;
 
     // 補助変数
     R_f = R(+1);
@@ -137,15 +135,15 @@ model(use_dll);
     q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint (Occbin)
-    [name = 'borrowing', relax = 'borrowing_slack']
+    [name = 'borrowing', relax = 'borrowing']
     mu = 0;
-    [name = 'borrowing', bind = 'borrowing_slack']
+    [name = 'borrowing', bind = 'borrowing']
     R_f * b = q_f * k;
 
     // (3) Farmer: Consumption constraint (Occbin)
-    [name = 'consumption', relax = 'cons_slack']
+    [name = 'consumption', relax = 'cons']
     varphi = 0;
-    [name = 'consumption', bind = 'cons_slack']
+    [name = 'consumption', bind = 'cons']
     x = c * k(-1);
 
     // (4) Farmer: 自家消費制約のオイラー方程式
@@ -188,7 +186,7 @@ model(use_dll);
     Nn = omega * b(-1);
 
     // (17) Market clearing: Resource constraint
-    x + m * xp + R*b(-1) + m*bp(-1) / betap = Y + m * (1 - theta - omega) * b(-1);
+     q * (kp-kp(-1)) + bp(-1) / betap + xp = (z + kp(-1))^alpha + (1-theta-omega) * b(-1) + bp;
 
     // (18) Market clearing: Total output
     Y = (a + c) * k(-1) + m * (z + kp(-1))^alpha;
@@ -204,14 +202,15 @@ end;
 // Occbin 制約条件の設定
 occbin_constraints;
     // 借入制約の非バインド条件
-    name 'borrowing_slack';
-    bind R_f*b > q_f*k;
-    relax mu < 0;
+    name 'borrowing';
+    bind mu < 0;
+    relax R_ss*b + b_ss*R_f - R_ss*b_ss < q_ss*k + k_ss*q_f - q_ss*k_ss;
+    //relax R_f * b < q_f * k;
 
     // 消費制約の非バインド条件
-    name 'cons_slack';
-    bind x < c*k_p;
-    relax varphi < 0;
+    name 'cons';
+    bind varphi < 0;
+    relax x > c*k_p;
 end;
 
 initval;
@@ -238,7 +237,7 @@ initval;
 end;
 
 shocks;
-    var eN = 0.01^2;
+    var eN = 0.01;
 end;
 
 steady;
@@ -251,6 +250,7 @@ shocks(surprise);
     values 0.01;
 end;
 
-occbin_setup(simul_periods=100, simul_maxit=200, simul_check_ahead_periods=200);
+occbin_setup(simul_periods=100, simul_maxit=30, simul_check_ahead_periods=200);
 occbin_solver;
 occbin_graph q k R b x mu varphi Y;
+
