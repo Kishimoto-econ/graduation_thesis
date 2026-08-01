@@ -131,7 +131,7 @@ model;
     x = c * k(-1);
 
     // (4) Farmer: 自家消費制約のオイラー方程式
-    1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
+    1 + varphi = beta * (1 + varphi(+1))*R(+1) + mu * R;
 
     // (5) Farmer: 不動産価格のオイラー方程式
     q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * (a + c + q(+1)) + mu * q(+1);

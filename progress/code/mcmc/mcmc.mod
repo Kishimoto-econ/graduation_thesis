@@ -29,7 +29,7 @@ var
 
 varexo 
     eN      $\varepsilon^N$
-    eY
+    eY      $\varepsilon^Y$
 ;
 
 parameters
@@ -53,9 +53,9 @@ parameters
     C           // rho-omega*(1-theta)*(1-betaFI/betap)
 
     // Policy Parameters
-    gamma_q     // Policy reaction to real estate price
-    gamma_N     // Policy reaction to net worth of FI
-    gamma_b     // Policy reaction to total borrowing of farmer
+    gamma_q     $\gamma_q$  // Policy reaction to real estate price
+    gamma_N     $\gamma_N$  // Policy reaction to net worth of FI
+    gamma_b     $\gamma_b$  // Policy reaction to total borrowing of farmer
 
     // Steady State
     q_ss
@@ -223,9 +223,9 @@ end;
 estimated_params;
 
     // Policy parameters
-    gamma_q,  normal_pdf, -0.1,  0.2;
-    gamma_N,  normal_pdf,  0.1,  0.2;
-    gamma_b,  normal_pdf, -0.1,  0.2;
+    gamma_q,  normal_pdf, -0.1,  0.05;
+    gamma_N,  normal_pdf,  0.1,  0.05;
+    gamma_b,  normal_pdf, -0.1,  0.05;
     
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;
@@ -236,7 +236,12 @@ varobs Y_obs R;
 identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 6, mode_check);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 5, mode_check, Tex);
+
+//mode_compute = 6がいいと思う
+//エラーの修正案として，b，qを観測変数にする
+//なぜなら推計する変数はb,qに関係する変数だから
+
 
 stoch_simul(order=1,irf=100,ar=0,TeX)
 q k R b x varphi mu kp chi nu eta zeta N phi Ne Nn xp bp Y
