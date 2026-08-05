@@ -82,22 +82,19 @@ parameters
 ;
 
     // values
-    beta    = 0.99;
-    betap   = 0.98;
+    beta    = 0.980;
+    betap   = 0.990;
     betaFI  = 0.985;
-    alpha   = 1/3;
-    a       = 0.7;
-    c       = 0.3;
-    z       = 0.01;
-    theta   = 0.95;
-    omega   = 0.002;
-    rho     = 0.4;
-    m       = 0.5;
+    alpha   = 0.495;
+    a       = 0.438;
+    c       = 0.00921;
+    theta   = 0.972;
+    omega   = 0.00200;
+    rho     = 0.381;
     gamma_q = -0.1;
     gamma_N = 0.1;
     gamma_b = -0.1;
-    Kbar    = 1;
-
+    Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
     C       = rho - omega*(1-theta)*(1-betaFI/betap);
