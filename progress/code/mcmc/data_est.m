@@ -1,9 +1,10 @@
 FqReport8 = csvread('C:\Users\Kohsu\Desktop\graduation_thesis\progress\data\calibration.csv', 1, 0);
 
+q_obs = FqReport8(:,1);
+b_obs = FqReport8(:,4);
 Y_obs = FqReport8(:,13);
-R = FqReport8(:,3);
 
-save dset.mat Y_obs R;
+save dset.mat q_obs b_obs Y_obs;
 
-disp(Y_obs);
-disp(R);
+disp(q_obs);
+disp(b_obs);

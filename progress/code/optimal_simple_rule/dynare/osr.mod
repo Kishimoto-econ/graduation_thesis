@@ -84,9 +84,9 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -0.1;
-    gamma_N = 0.1;
-    gamma_b = -0.1;
+    gamma_q = -0.0186;
+    gamma_N = 0.0467;
+    gamma_b = -0.0520;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -117,7 +117,7 @@ parameters
 model;
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
+    q * (k - k(-1)) + R * b(-1) + x = (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
     R(+1) * b = q(+1) * k;
@@ -202,7 +202,8 @@ initval;
 end;
 
 shocks;
-    var eN = 0.001^2;
+    var eN = 0.1129;
+    // var eY = 0.2227;
 end;
 
 steady;

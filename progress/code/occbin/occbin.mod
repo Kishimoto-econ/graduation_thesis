@@ -27,7 +27,6 @@ var
     // 補助変数
     R_f
     q_f
-    //k_p
 ;
 
 varexo 
@@ -99,7 +98,7 @@ parameters
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
     C       = rho - omega*(1-theta)*(1-betaFI/betap);
 
-    // Steady state Values
+    // Stady state Values
     eb_ss           = 0;
     zeta_ss         = (-B - sqrt((B^2 - 4*A*C))) / (2*A);
     phi_ss          = (1-theta*zeta_ss) / omega;
@@ -108,28 +107,27 @@ parameters
     nu_ss           = eta_ss * betaFI * (zeta_ss-1/betap)/phi_ss;
     R_ss            = (zeta_ss-1/betap)/phi_ss + 1/betap;
     q_ss            = a*R_ss / (R_ss-1);
-    kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1)) - z;
-    k_ss            = Kbar - m*kp_ss;
+    kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1));
+    k_ss            = Kbar - kp_ss;
     b_ss            = q_ss*k_ss/R_ss;
     N_ss            = b_ss/phi_ss;
     Nn_ss           = omega*b_ss;
     Ne_ss           = N_ss - Nn_ss;
     x_ss            = c*k_ss;
-    Y_ss            = (a+c)*k_ss + m*(z+kp_ss)^alpha;
+    Y_ss            = (a+c)*k_ss + kp_ss^alpha;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss/m*((1-phi_ss)/phi_ss);
-    xp_ss           = (z + kp_ss)^alpha + (1-theta-omega) * b_ss + bp_ss - bp_ss / betap;
+    bp_ss           = b_ss/((1-phi_ss)/phi_ss);
+    xp_ss           = (Y_ss + (1-theta-omega)*b_ss - x_ss - R_ss*b_ss-bp_ss/betap);
 
 model;
 
     // 補助変数
     R_f = R(+1);
     q_f = q(+1);
-    //k_p = k(-1);
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) + R * b(-1) + x - c * k(-1) = a * k(-1) + b;
+    q * (k - k(-1)) + R * b(-1) + x = (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint (Occbin)
     [name = 'borrowing', bind = 'borrowing']
@@ -137,76 +135,66 @@ model;
     [name = 'borrowing', relax = 'borrowing']
     R_f * b = q_f * k;
 
-    // (3) Farmer: Consumption constraint (Occbin)
-    //[name = 'consumption', bind = 'cons']
-    //varphi = 0;
-    //[name = 'consumption', relax = 'cons']
+    // (3) Farmer: Consumption
     x = c * k(-1);
 
-    // (4) Farmer: 自家消費制約のオイラー方程式
+    // (4) Farmer: Euler's equation of self-consumption constraints
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
-    // (5) Farmer: 不動産価格のオイラー方程式
+    // (5) Farmer: Euler's equation of asset price
     q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * (a + c + q(+1)) + mu * q(+1);
 
-    // (6) Gatherer: Asset pricingのオイラー方程式
-    q = betap * (alpha * (z + kp)^(alpha - 1) + q(+1));
+    // (6) Gatherer: Budget constraint
+    q * (kp-kp(-1)) + bp(-1) / betap + xp = kp(-1)^alpha + (1-theta-omega) * b(-1) + bp;
 
-    // (7) FI: Marginal value of net worth
-    nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
+    // (7) Gatherer: Euler's equation of Asset pricing
+    q = betap * (alpha * kp^(alpha - 1) + q(+1));
 
     // (8) FI: Marginal value of extending loans
+    nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
+
+    // (9) FI: Marginal value of net worth
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
-    // (9) FI: Leverage ratio
+    // (10) FI: Leverage ratio
     phi = eta / (rho - nu);
 
-    // (10) FI: Aggregate loan with credit policy
+    // (11) FI: Aggregate loan with credit policy
     b = phi * N * (1 + eb);
 
-    // (11) Credit policy rule
+    // (12) Credit policy rule
     eb = gamma_q*(q(-1)-q_ss) + gamma_N*(N(-1)-N_ss) + gamma_b*(b(-1)-b_ss);
 
-    // (12) FI: Excess return
+    // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
 
-    // (13) FI: Growth rate of net worth
+    // (14) FI: Growth rate of lending
     chi = phi / phi(-1) * zeta;
 
-    // (14) FI: Total net worth
-    N = Ne + Nn;
+    // (15) FI: Total net worth
+    N = (Ne + Nn);
 
-    // (15) FI: Existing bankers' net worth with NPL shock
+    // (16) FI: Existing bankers' net worth with NPL shock
     Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1)*(1-eN);
 
-    // (16) FI: New bankers' net worth
+    // (17) FI: New bankers' net worth
     Nn = omega * b(-1);
 
-    // (17) Market clearing: Resource constraint
-     q * (kp-kp(-1)) + bp(-1) / betap + xp = (z + kp(-1))^alpha + (1-theta-omega) * b(-1) + bp;
-
     // (18) Market clearing: Total output
-    Y = (a + c) * k(-1) + m * (z + kp(-1))^alpha;
+    Y = (a + c) * k(-1) + kp(-1)^alpha;
 
     // (19) Market clearing: Capital
-    k + m * kp = Kbar;
+    k + kp = Kbar;
 
     // (20) Market clearing: Bond
-    b + m * bp = N;
+    b + bp = N;
 
 end;
 
-// Occbin 制約条件の設定
 occbin_constraints;
-    // 借入制約の非バインド条件
     name 'borrowing';
     relax mu < 0;
     bind R_ss*b + b_ss*R_f - R_ss*b_ss < q_ss*k + k_ss*q_f - q_ss*k_ss;
-
-    // 消費制約の非バインド条件
-    //name 'cons';
-    //relax varphi < 0;
-    //bind x > c*k_p;
 end;    
 
 initval;
@@ -250,3 +238,11 @@ occbin_setup(simul_periods=100, simul_maxit=30, simul_check_ahead_periods=200);
 occbin_solver;
 occbin_graph q k R b x mu varphi Y;
 
+FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\occbin";
+FigHandles =  findobj('type','figure');
+nFig = length(FigHandles);
+for iFig = 1:nFig
+  h = FigHandles(iFig);
+  FigName  = get(h, 'Name');
+  savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
