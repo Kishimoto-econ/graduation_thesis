@@ -16,24 +16,15 @@ for i = 1:length(gamma_q_grid)
 
         set_param_value('gamma_b',gamma_b_grid(j));
         
+        steady;
+        
         try
-            steady;
-            check(M_,options_,oo_);
             stoch_simul(M_,options_,oo_,var_list_);
-    
-            eigval = oo_.dr.eigval;
-            nunstable = sum(abs(eigval) > 1);
-            
-            if nunstable == M_.nfwrd
-                BK(i,j) = 0;
-                disp('BK条件を満たす')
-            else
-                BK(i,j) = 1;
-                disp('BK条件を満たさない')
-            end
-        catch
-        end
 
+            BK(i,j) = 0;
+        catch    
+            BK(i,j) = 1;
+        end
     end
 end
 

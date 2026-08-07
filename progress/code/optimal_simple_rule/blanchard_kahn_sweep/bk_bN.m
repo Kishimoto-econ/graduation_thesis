@@ -3,14 +3,14 @@ close all
 
 dynare osr_param.mod;
 
-gamma_q_grid = -1:0.05:1;
+gamma_b_grid = -1:0.05:1;
 gamma_N_grid = -1:0.05:1;
 
-BK = zeros(length(gamma_q_grid),length(gamma_N_grid));
+BK = zeros(length(gamma_b_grid),length(gamma_N_grid));
 
-for i = 1:length(gamma_q_grid)
+for i = 1:length(gamma_b_grid)
 
-    set_param_value('gamma_q',gamma_q_grid(i));
+    set_param_value('gamma_b',gamma_b_grid(i));
 
     for j = 1:length(gamma_N_grid)
 
@@ -31,15 +31,15 @@ end
 figure
 hold on
 
-for i = 1:length(gamma_q_grid)
+for i = 1:length(gamma_b_grid)
     for j = 1:length(gamma_N_grid)
         if BK(i,j)==0
-            plot(gamma_q_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
+            plot(gamma_b_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
         end
     end
 end
 
-xlabel('\gamma_q')
+xlabel('\gamma_b')
 ylabel('\gamma_N')
 title('Region satisfying BK conditions')
 xlim([-1 1])
