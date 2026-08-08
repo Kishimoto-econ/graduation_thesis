@@ -41,12 +41,12 @@ end
 
 xlabel('\gamma_q')
 ylabel('\gamma_N')
-title('Region satisfying BK conditions')
 xlim([-1 1])
 ylim([-1 1])
+fontsize(16,"points")
 grid on
 box on
 
-cd C:\Users\Kohsu\OneDrive\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep\output
-saveas(gcf,'bk_qb.png')
-cd C:\Users\Kohsu\OneDrive\Desktop\graduation_thesis\code\osr\blanchard_kahn_sweep
+cd C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\blanchard_kahn_sweep\output
+saveas(gcf,'bk_qN.png')
+cd C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\blanchard_kahn_sweep
