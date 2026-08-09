@@ -84,9 +84,9 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -0.0186;
-    gamma_N = 0.0467;
-    gamma_b = -0.0520;
+    gamma_q = -0.0377;
+    gamma_N = 0.0513;
+    gamma_b = -0.0595;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;

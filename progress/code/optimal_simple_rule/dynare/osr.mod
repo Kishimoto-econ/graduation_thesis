@@ -144,10 +144,10 @@ model;
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi = eta / (rho - nu);
+    phi = (eta / (rho - nu)) * (1 + eb);
 
     // (11) FI: Aggregate loan with credit policy
-    b = phi * N * (1 + eb);
+    b = phi * N;
 
     // (12) Credit policy rule
     eb = gamma_q*(q(-1)-q_ss) + gamma_N*(N(-1)-N_ss) + gamma_b*(b(-1)-b_ss);

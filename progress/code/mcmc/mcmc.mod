@@ -154,10 +154,10 @@ model;
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi = eta / (rho - nu);
+    phi = (eta / (rho - nu)) * (1 + eb);
 
     // (11) FI: Aggregate loan with credit policy
-    b = phi * N * (1 + eb);
+    b = phi * N;
 
     // (12) Credit policy rule
     eb = gamma_q*(q(-1)-q_ss) + gamma_N*(N(-1)-N_ss) + gamma_b*(b(-1)-b_ss);
@@ -239,7 +239,7 @@ varobs b_obs Y_obs;
 identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check, Tex);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 6, mode_check, Tex);
 
 // save figures
 FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";
