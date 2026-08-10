@@ -160,7 +160,9 @@ model;
     b = phi * N;
 
     // (12) Credit policy rule
-    eb = gamma_q*(q(-1)-q_ss) + gamma_N*(N(-1)-N_ss) + gamma_b*(b(-1)-b_ss);
+    eb = gamma_q * (log(q(-1)) - log(q_ss)) 
+       + gamma_N * (log(N(-1)) - log(N_ss)) 
+       + gamma_b * (log(b(-1)) - log(b_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
@@ -222,9 +224,9 @@ check;
 estimated_params;
 
     // Policy parameters
-    gamma_q,  normal_pdf, 0,  0.05;
-    gamma_N,  normal_pdf, 0,  0.05;
-    gamma_b,  normal_pdf, 0,  0.05;
+    gamma_q,  normal_pdf, 0,  5;
+    gamma_N,  normal_pdf, 0,  5;
+    gamma_b,  normal_pdf, 0,  5;
     
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;

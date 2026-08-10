@@ -84,9 +84,9 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -0.0186;
-    gamma_N = 0.0467;
-    gamma_b = -0.0520;
+    gamma_q = -3.77;
+    gamma_N = 5.13;
+    gamma_b = -5.95;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -150,7 +150,9 @@ model;
     b = phi * N;
 
     // (12) Credit policy rule
-    eb = gamma_q*(q(-1)-q_ss) + gamma_N*(N(-1)-N_ss) + gamma_b*(b(-1)-b_ss);
+    eb = gamma_q * (log(q(-1)) - log(q_ss)) 
+       + gamma_N * (log(N(-1)) - log(N_ss)) 
+       + gamma_b * (log(b(-1)) - log(b_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
