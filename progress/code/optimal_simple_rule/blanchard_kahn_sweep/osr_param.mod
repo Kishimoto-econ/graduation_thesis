@@ -49,8 +49,7 @@ parameters
 
     // Policy Parameters
     gamma_q     // Policy reaction to real estate price
-    gamma_N     // Policy reaction to net worth of FI
-    gamma_b     // Policy reaction to total borrowing of farmer
+    gamma_bY     // Policy reaction to ratio of borrowing of farmer / output
 
     // Steady State
     q_ss
@@ -84,9 +83,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -3.77;
-    gamma_N = 5.13;
-    gamma_b = -5.95;
+    gamma_q = -0.3;
+    gamma_bY = -1;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -144,15 +142,14 @@ model;
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi = eta / (rho - nu);
+    phi = (eta / (rho - nu)) * (1 + eb);
 
     // (11) FI: Aggregate loan with credit policy
-    b = phi * N * (1 + eb);
+    b = phi * N;
 
     // (12) Credit policy rule
     eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_N * (log(N(-1)) - log(N_ss)) 
-       + gamma_b * (log(b(-1)) - log(b_ss));
+       + gamma_bY * (log(b(-1)) / log(Y(-1)) - log(b_ss) / log(Y_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;

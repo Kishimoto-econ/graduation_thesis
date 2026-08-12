@@ -3,14 +3,14 @@ close all
 
 dynare osr_param.mod;
 
-gamma_b_grid = -1:0.05:1;
-gamma_N_grid = -1:0.05:1;
+gamma_Y_grid = -10:0.5:10;
+gamma_N_grid = -10:0.5:10;
 
-BK = zeros(length(gamma_b_grid),length(gamma_N_grid));
+BK = zeros(length(gamma_Y_grid),length(gamma_N_grid));
 
-for i = 1:length(gamma_b_grid)
+for i = 1:length(gamma_Y_grid)
 
-    set_param_value('gamma_b',gamma_b_grid(i));
+    set_param_value('gamma_Y',gamma_Y_grid(i));
 
     for j = 1:length(gamma_N_grid)
 
@@ -31,18 +31,18 @@ end
 figure
 hold on
 
-for i = 1:length(gamma_b_grid)
+for i = 1:length(gamma_Y_grid)
     for j = 1:length(gamma_N_grid)
         if BK(i,j)==0
-            plot(gamma_b_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
+            plot(gamma_Y_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
         end
     end
 end
 
-xlabel('\gamma_b')
+xlabel('\gamma_Y')
 ylabel('\gamma_N')
-xlim([-1 1])
-ylim([-1 1])
+xlim([-10 10])
+ylim([-10 10])
 fontsize(16,"points")
 grid on
 box on

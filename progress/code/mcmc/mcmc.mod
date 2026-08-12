@@ -26,13 +26,15 @@ var
     
     eb      $\varepsilon^b$
 
-    b_obs
+    N_obs
     Y_obs
+    q_obs
 ;
 
 varexo 
     eN      $\varepsilon^N$
     eY      $\varepsilon^Y$
+    eq      $\varepsilon^q$
 ;
 
 parameters
@@ -54,9 +56,8 @@ parameters
     C           // rho-omega*(1-theta)*(1-betaFI/betap)
 
     // Policy Parameters
-    gamma_q     $\gamma_q$  // Policy reaction to real estate price
-    gamma_N     $\gamma_N$  // Policy reaction to net worth of FI
-    gamma_b     $\gamma_b$  // Policy reaction to total borrowing of farmer
+    gamma_q    $\gamma_q$      // Policy reaction to real estate price
+    gamma_bY   $\gamma_{bY}$   // Policy reaction to borrowing of farmer
 
     // Steady State
     q_ss
@@ -90,9 +91,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -0.1;
-    gamma_N = 0.1;
-    gamma_b = -0.1;
+    gamma_q = -3;
+    gamma_bY = -3;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -123,14 +123,15 @@ parameters
 model;
     
     // 観測方程式
-    b_obs = log(b) - log(b(-1));
+    N_obs = log(N) - log(N(-1));
     Y_obs = log(Y) - log(Y(-1));
+    q_obs = log(q) - log(q(-1));
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) + R * b(-1) + x = (1-eY(+1)) * (a+c) * k(-1) + b;
+    q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R(+1) * b = q(+1) * k;
+    R(+1) * b = q(+1) * k * (1-eq(+1));
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -139,13 +140,13 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
+    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
 
     // (6) Gatherer: Budget constraint
-    q * (kp-kp(-1)) + bp(-1) / betap + xp = kp(-1)^alpha + (1-theta-omega) * b(-1) + bp;
+    q * (kp-kp(-1)) * (1-eq) + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
 
     // (7) Gatherer: Euler's equation of Asset pricing
-    q = betap * ((1-eY(+1))*alpha * kp^(alpha - 1) + q(+1));
+    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
 
     // (8) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
@@ -161,8 +162,7 @@ model;
 
     // (12) Credit policy rule
     eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_N * (log(N(-1)) - log(N_ss)) 
-       + gamma_b * (log(b(-1)) - log(b_ss));
+       + gamma_bY * (log(b(-1)) / log(Y(-1)) - log(b_ss) / log(Y_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
@@ -174,13 +174,13 @@ model;
     N = (Ne + Nn);
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1)*(1-eN);
+    Ne*(1-eN) = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1);
 
     // (17) FI: New bankers' net worth
     Nn = omega * b(-1);
 
     // (18) Market clearing: Total output
-    Y = (1-eY)*(a + c) * k(-1) + kp(-1)^alpha;
+    Y = (1-eY)*(a + c) * k(-1) + (1-eY)*kp(-1)^alpha;
 
     // (19) Market clearing: Capital
     k + kp = Kbar;
@@ -216,32 +216,40 @@ end;
 shocks;
     var eN = 0.01^2;
     var eY = 0.01^2;
+    var eq = 0.01^2;
 end;
 
 steady;
 check;
 
 estimated_params;
+    gamma_q, normal_pdf, -5, 5;
+    gamma_bY, normal_pdf, -5, 5;
+    
+    // ショックの標準偏差など
+    stderr eN, inv_gamma_pdf, 0.01, 0.005;
+    stderr eY, inv_gamma_pdf, 0.01, 0.005;
+    stderr eq, inv_gamma_pdf, 0.01, 0.005;
+end;
 
-    // Policy parameters
-    gamma_q,  normal_pdf, 0,  5;
-    gamma_N,  normal_pdf, 0,  5;
-    gamma_b,  normal_pdf, 0,  5;
+/* BKが0付近で満たさないので，正負で分ける
+estimated_params;
+    gamma_q,   5,  0.5,  10, uniform_pdf,  5, 2.0;
+    gamma_bY,  5,  1.5,  10, uniform_pdf,  5, 2.0;
     
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;
-
+    stderr eq, inv_gamma_pdf, 0.01, 0.005;
 end;
+*/
 
-estimated_params_init(use_calibration);
-end;
 
-varobs b_obs Y_obs;
+varobs N_obs Y_obs q_obs;
 
 identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 6, mode_check, Tex);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check, Tex);
 
 // save figures
 FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";
