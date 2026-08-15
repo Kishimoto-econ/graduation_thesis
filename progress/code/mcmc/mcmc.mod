@@ -162,7 +162,7 @@ model;
 
     // (12) Credit policy rule
     eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_bY * (log(b(-1)) / log(Y(-1)) - log(b_ss) / log(Y_ss));
+       + gamma_bY * (log(b(-1)/Y(-1)) - log(b_ss/Y_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
@@ -171,10 +171,10 @@ model;
     chi = phi / phi(-1) * zeta;
 
     // (15) FI: Total net worth
-    N = (Ne + Nn);
+    N*(1-eN) = (Ne + Nn);
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne*(1-eN) = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1);
+    Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1);
 
     // (17) FI: New bankers' net worth
     Nn = omega * b(-1);
@@ -222,34 +222,39 @@ end;
 steady;
 check;
 
+/* BKが0付近で満たさないので，正負で分ける
 estimated_params;
     gamma_q, normal_pdf, -5, 5;
-    gamma_bY, normal_pdf, -5, 5;
+    gamma_bY, normal_pdf, 0, 5;
     
     // ショックの標準偏差など
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;
     stderr eq, inv_gamma_pdf, 0.01, 0.005;
 end;
+*/
 
-/* BKが0付近で満たさないので，正負で分ける
 estimated_params;
-    gamma_q,   5,  0.5,  10, uniform_pdf,  5, 2.0;
-    gamma_bY,  5,  1.5,  10, uniform_pdf,  5, 2.0;
+    gamma_q,  normal_pdf,  3, 1;
+    gamma_bY, normal_pdf,  0, 3;
     
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;
     stderr eq, inv_gamma_pdf, 0.01, 0.005;
 end;
-*/
 
+
+estimated_params_init;
+    gamma_q,  3;
+    gamma_bY, 3;
+end;
 
 varobs N_obs Y_obs q_obs;
 
 identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check, Tex);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.7, mode_compute = 4, mode_check, Tex);
 
 // save figures
 FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";

@@ -1,4 +1,4 @@
-FqReport8 = csvread('C:\Users\Kohsu\Desktop\graduation_thesis\progress\data\calibration.csv', 1, 0);
+FqReport8 = readmatrix('C:\Users\Kohsu\Desktop\graduation_thesis\progress\data\calibration.csv');
 
 N_obs = FqReport8(:,5);
 Y_obs = FqReport8(:,8);

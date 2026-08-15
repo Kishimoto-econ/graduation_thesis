@@ -149,7 +149,7 @@ model;
 
     // (12) Credit policy rule
     eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_bY * (log(b(-1)) / log(Y(-1)) - log(b_ss) / log(Y_ss));
+       + gamma_bY * (log(b(-1)/Y(-1)) - log(b_ss/Y_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
