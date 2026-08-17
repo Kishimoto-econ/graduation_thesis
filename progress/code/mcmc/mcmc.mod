@@ -24,7 +24,7 @@ var
     bp      $b^\prime$
     Y
     
-    eb      $\varepsilon^b$
+    eb      $\epsilon^b$
 
     N_obs
     Y_obs
@@ -32,9 +32,9 @@ var
 ;
 
 varexo 
-    eN      $\varepsilon^N$
-    eY      $\varepsilon^Y$
-    eq      $\varepsilon^q$
+    eN      $e^N$
+    eY      $e^Y$
+    eq      $e^q$
 ;
 
 parameters
@@ -131,7 +131,7 @@ model;
     q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R(+1) * b = q(+1) * k * (1-eq(+1));
+    R(+1) * b = q(+1) * k;
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -140,13 +140,13 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
+    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
 
     // (6) Gatherer: Budget constraint
     q * (kp-kp(-1)) * (1-eq) + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
 
     // (7) Gatherer: Euler's equation of Asset pricing
-    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
+    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
 
     // (8) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
@@ -234,13 +234,14 @@ estimated_params;
 end;
 */
 
+// 係数の事前平均値は，一度目のpost. meanを使用
 estimated_params;
-    gamma_q,  normal_pdf,  3, 1;
-    gamma_bY, normal_pdf,  0, 3;
+    gamma_q,  normal_pdf,  1.5721, 1;
+    gamma_bY, normal_pdf,  1.9539, 1;
     
-    stderr eN, inv_gamma_pdf, 0.01, 0.005;
-    stderr eY, inv_gamma_pdf, 0.01, 0.005;
-    stderr eq, inv_gamma_pdf, 0.01, 0.005;
+    stderr eN, inv_gamma_pdf, 0.0545, 0.005;
+    stderr eY, inv_gamma_pdf, 0.0172, 0.005;
+    stderr eq, inv_gamma_pdf, 0.0084, 0.005;
 end;
 
 
@@ -264,4 +265,18 @@ for iFig = 1:nFig
   h = FigHandles(iFig);
   FigName  = get(h, 'Name');
   savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
+
+// パラメータの事後標準偏差を表示
+disp('--- Parameters Post. Std ---')
+fields = fieldnames(oo_.posterior_std.parameters);
+for i = 1:length(fields)
+    fprintf('%s: %f\n', fields{i}, oo_.posterior_std.parameters.(fields{i}));
+end
+
+// ショックの事後標準偏差を表示
+disp('--- Shocks Post. Std ---')
+fields_sh = fieldnames(oo_.posterior_std.shocks_std);
+for i = 1:length(fields_sh)
+    fprintf('%s: %f\n', fields_sh{i}, oo_.posterior_std.shocks_std.(fields_sh{i}));
 end
