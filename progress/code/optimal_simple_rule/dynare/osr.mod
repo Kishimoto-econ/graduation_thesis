@@ -106,11 +106,11 @@ parameters
     Nn_ss           = omega*b_ss;
     Ne_ss           = N_ss - Nn_ss;
     x_ss            = c*k_ss;
-    Y_ss            = (a+c)*k_ss + kp_ss^alpha;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss/((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + (1-theta-omega)*b_ss - x_ss - R_ss*b_ss-bp_ss/betap);
+    bp_ss           = b_ss*(1-phi_ss)/phi_ss;
+    xp_ss           = kp_ss^alpha + (1-theta-omega)*b_ss - bp_ss*(1/betap - 1);
+    Y_ss            = x_ss + xp_ss;
 
 model;
 

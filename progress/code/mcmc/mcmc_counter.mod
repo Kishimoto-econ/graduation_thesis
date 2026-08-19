@@ -24,7 +24,7 @@ var
     bp      $b^\prime$
     Y
     
-    eb      $\varepsilon^b$
+    eb      $\epsilon^b$
 
     N_obs
     Y_obs
@@ -32,9 +32,9 @@ var
 ;
 
 varexo 
-    eN      $\varepsilon^N$
-    eY      $\varepsilon^Y$
-    eq      $\varepsilon^q$
+    eN      $e^N$
+    eY      $e^Y$
+    eq      $e^q$
 ;
 
 parameters
@@ -57,7 +57,7 @@ parameters
 
     // Policy Parameters
     gamma_q    $\gamma_q$      // Policy reaction to real estate price
-    gamma_bY   $\gamma_{bY}$   // Policy reaction to borrowing of farmer
+    gamma_N   $\gamma_{N}$   // Policy reaction to borrowing of farmer
 
     // Steady State
     q_ss
@@ -92,7 +92,7 @@ parameters
     omega   = 0.00200;
     rho     = 0.381;
     gamma_q = -3;
-    gamma_bY = -3;
+    gamma_N = -3;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -131,7 +131,7 @@ model;
     q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R(+1) * b = q(+1) * k * (1-eq(+1));
+    R(+1) * b = q(+1) * k;
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -140,13 +140,13 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
+    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
 
     // (6) Gatherer: Budget constraint
     q * (kp-kp(-1)) * (1-eq) + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
 
     // (7) Gatherer: Euler's equation of Asset pricing
-    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
+    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
 
     // (8) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
@@ -162,7 +162,7 @@ model;
 
     // (12) Credit policy rule
     eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_bY * (log(b(-1)/Y(-1)) - log(b_ss/Y_ss));
+       + gamma_N * (log(N(-1)) - log(N_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
@@ -222,22 +222,11 @@ end;
 steady;
 check;
 
-/* BKが0付近で満たさないので，正負で分ける
 estimated_params;
-    gamma_q, normal_pdf, -5, 5;
-    gamma_bY, normal_pdf, 0, 5;
+    gamma_q, normal_pdf, -3, 5;
+    gamma_N, normal_pdf, -3, 5;
     
     // ショックの標準偏差など
-    stderr eN, inv_gamma_pdf, 0.01, 0.005;
-    stderr eY, inv_gamma_pdf, 0.01, 0.005;
-    stderr eq, inv_gamma_pdf, 0.01, 0.005;
-end;
-*/
-
-estimated_params;
-    gamma_q,  normal_pdf,  3, 1;
-    gamma_bY, normal_pdf,  0, 3;
-    
     stderr eN, inv_gamma_pdf, 0.01, 0.005;
     stderr eY, inv_gamma_pdf, 0.01, 0.005;
     stderr eq, inv_gamma_pdf, 0.01, 0.005;
@@ -245,8 +234,8 @@ end;
 
 
 estimated_params_init;
-    gamma_q,  3;
-    gamma_bY, 3;
+    gamma_q,  -3;
+    gamma_N, -3;
 end;
 
 varobs N_obs Y_obs q_obs;
@@ -257,11 +246,25 @@ estimation(datafile='dset.mat', mh_replic=125000,
 mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.7, mode_compute = 4, mode_check, Tex);
 
 // save figures
-FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";
+FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output_counter";
 FigHandles =  findobj('type','figure');
 nFig = length(FigHandles);
 for iFig = 1:nFig
   h = FigHandles(iFig);
   FigName  = get(h, 'Name');
   savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
+
+// パラメータの事後標準偏差を表示
+disp('--- Parameters Post. Std ---')
+fields = fieldnames(oo_.posterior_std.parameters);
+for i = 1:length(fields)
+    fprintf('%s: %f\n', fields{i}, oo_.posterior_std.parameters.(fields{i}));
+end
+
+// ショックの事後標準偏差を表示
+disp('--- Shocks Post. Std ---')
+fields_sh = fieldnames(oo_.posterior_std.shocks_std);
+for i = 1:length(fields_sh)
+    fprintf('%s: %f\n', fields_sh{i}, oo_.posterior_std.shocks_std.(fields_sh{i}));
 end

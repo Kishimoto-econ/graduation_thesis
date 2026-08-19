@@ -28,6 +28,8 @@ var
 
 varexo 
     eN      $\varepsilon^N$
+    eY
+    eq
 ;
 
 parameters
@@ -49,7 +51,7 @@ parameters
 
     // Policy Parameters
     gamma_q     // Policy reaction to real estate price
-    gamma_bY     // Policy reaction to ratio of borrowing of farmer / output
+    gamma_N
 
     // Steady State
     q_ss
@@ -83,8 +85,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = -0.3;
-    gamma_bY = -1;
+    gamma_q = 0;
+    gamma_N = 0;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -106,19 +108,19 @@ parameters
     Nn_ss           = omega*b_ss;
     Ne_ss           = N_ss - Nn_ss;
     x_ss            = c*k_ss;
-    Y_ss            = (a+c)*k_ss + kp_ss^alpha;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss/((1-phi_ss)/phi_ss);
-    xp_ss           = (Y_ss + (1-theta-omega)*b_ss - x_ss - R_ss*b_ss-bp_ss/betap);
+    bp_ss           = b_ss*(1-phi_ss)/phi_ss;
+    xp_ss           = kp_ss^alpha + (1-theta-omega)*b_ss - bp_ss*(1/betap - 1);
+    Y_ss            = x_ss + xp_ss;
 
 model;
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) + R * b(-1) + x = (a+c) * k(-1) + b;
+    q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R(+1) * b = q(+1) * k;
+    R * b(-1) = q * k(-1);
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -127,13 +129,13 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1 + varphi) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * (a + c + q(+1)) + mu * q(+1);
+    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
 
     // (6) Gatherer: Budget constraint
-    q * (kp-kp(-1)) + bp(-1) / betap + xp = kp(-1)^alpha + (1-theta-omega) * b(-1) + bp;
+    q * (kp-kp(-1)) * (1-eq) + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
 
     // (7) Gatherer: Euler's equation of Asset pricing
-    q = betap * (alpha * kp^(alpha - 1) + q(+1));
+    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
 
     // (8) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
@@ -148,8 +150,8 @@ model;
     b = phi * N;
 
     // (12) Credit policy rule
-    eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_bY * (log(b(-1)/Y(-1)) - log(b_ss/Y_ss));
+    eb = gamma_q * (log(q(-1)/q_ss)) 
+       + gamma_N * (log(N(-1)/N_ss));
 
     // (13) FI: growth rate of net worth
     zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
@@ -158,23 +160,22 @@ model;
     chi = phi / phi(-1) * zeta;
 
     // (15) FI: Total net worth
-    N = (Ne + Nn);
+    N*(1-eN) = (Ne + Nn);
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1)*(1-eN);
+    Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1);
 
     // (17) FI: New bankers' net worth
     Nn = omega * b(-1);
 
     // (18) Market clearing: Total output
-    Y = (a + c) * k(-1) + kp(-1)^alpha;
+    Y = (1-eY)*x + (1-eY)*xp;
 
     // (19) Market clearing: Capital
     k + kp = Kbar;
 
     // (20) Market clearing: Bond
     b + bp = N;
-
 end;
 
 initval;
@@ -198,11 +199,6 @@ initval;
     bp      = bp_ss;
     Y       = Y_ss;
     eb      = eb_ss;
-end;
-
-shocks;
-    var eN = 0.1129;
-    // var eY = 0.2227;
 end;
 
 steady;
