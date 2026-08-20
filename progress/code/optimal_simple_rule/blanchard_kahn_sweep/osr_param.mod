@@ -85,8 +85,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = 1;
-    gamma_N = 1;
+    gamma_q = 5;
+    gamma_N = 5;
     Kbar    = 6.62;
     A       = rho*betaFI*theta^2;
     B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
@@ -110,7 +110,7 @@ parameters
     x_ss            = c*k_ss;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss*(1- 1/phi_ss)*phi_ss;
+    bp_ss           = b_ss - N_ss;
     xp_ss           = kp_ss^alpha + (1-theta-omega)*b_ss - bp_ss*(1/betap - 1);
     Y_ss            = x_ss + xp_ss;
 
@@ -126,7 +126,7 @@ model;
     x = c * k(-1);
 
     // (4) Farmer: Euler's equation of self-consumption constraints
-    1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R(+1);
+    1 + varphi = (beta * (1 + varphi(+1)) + mu) * R(+1);
 
     // (5) Farmer: Euler's equation of asset price
     q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
@@ -175,7 +175,7 @@ model;
     k + kp = Kbar;
 
     // (20) Market clearing: Bond
-    b + bp = N;
+    b = N + bp;
 end;
 
 initval;
