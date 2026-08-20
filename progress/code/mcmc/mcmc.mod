@@ -159,7 +159,7 @@ q  = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi = (eta / (rho - nu)) * (1 + eb);
+    phi * (1 + eb) = (eta / (rho - nu));
 
     // (11) FI: Aggregate loan with credit policy
     b = phi * N;
@@ -245,7 +245,7 @@ varobs N_obs Y_obs;// q_obs;
 identification;
 
 estimation(datafile='dset.mat', mh_replic=125000,
-mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.6, mode_compute = 4, mode_check, Tex);
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.8, mode_compute = 4, mode_check, Tex);
 
 // save figures
 FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";
