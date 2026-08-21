@@ -91,25 +91,22 @@ parameters
     gamma_N = 0;
     Kbar    = 6;
 
-// Steady state calculation
+    // Steady state calculation
     eb_ss           = 0;
     Rp_ss           = 1/betap + omega;
     
     // Updated Coefficients for the quadratic equation
     A               = rho * betaFI * theta^2;
-    B               = -rho * theta * (1 + betaFI * (1 + omega)) - (1 - theta) * (omega * betaFI + theta * Rp_ss * (1 - betaFI * Rp_ss) + betaFI * Rp_ss * (1 + omega));
-    C               = rho * (1 + omega) - (1 - theta) * (omega * (1 - betaFI * Rp_ss) - (theta * Rp_ss * (1 - betaFI * Rp_ss) + betaFI * Rp_ss * (1 + omega)));
-    
+    B               = -rho * theta * (1 + betaFI * (1 + omega)) - omega * (1 - theta) * betaFI;
+    C               = rho * (1 + omega) - omega * (1 - theta) * (1 - betaFI * Rp_ss);
+
     // Steady state Values
     zeta_ss         = (-B - sqrt((B^2 - 4*A*C))) / (2*A);
-    phi_ss          = (omega + theta * (zeta_ss - 1) * Rp_ss) / (1 - theta*zeta_ss + omega);
+    phi_ss          = omega / (1 - theta*zeta_ss + omega);
     eta_ss          = (1 - theta) / (1 - betaFI*theta*zeta_ss);
     chi_ss          = zeta_ss;
-    
-    // R_ss と nu_ss をモデルの仕様に合わせて修正
-    R_ss            = (zeta_ss - Rp_ss) * phi_ss + zeta_ss * Rp_ss;
-    nu_ss           = eta_ss * betaFI * (R_ss - Rp_ss);
-    
+    nu_ss           = eta_ss * betaFI * (zeta_ss - Rp_ss) * phi_ss;
+    R_ss            = (zeta_ss - Rp_ss) * phi_ss + Rp_ss;
     q_ss            = a*R_ss / (R_ss-1);
     kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1));
     k_ss            = Kbar - kp_ss;
@@ -124,16 +121,21 @@ parameters
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
     
-    // Updated Gatherer consumption steady state (zeta_ss の代わりに数式を直接代入)
-    xp_ss           = kp_ss^alpha + (1-theta)*((R_ss - Rp_ss)/phi_ss + Rp_ss)*N_ss + (Rp_ss - 1 - omega)*bp_ss;
+    // Updated Gatherer consumption steady state
+    xp_ss           = kp_ss^alpha + (1-theta)*zeta_ss*N_ss + (Rp_ss - 1 - omega)*bp_ss;
     Y_ss            = x_ss + xp_ss;
+
 model;
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
+    q * (k - k(-1)) * (1-eq) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R(+1) * b = q(+1) * k;
+    R * b = q(+1) * k;
+    //Rのタイミングを当期にしたら成功．ただしFIのRは来期なので，
+    //情報の非対称性によってFIが事前に知っていると想定する．
+    //予算制約式，オイラー方程式のRとRpのタイミングを修正する（後で）
+    //FIをKMにRのタイミングを揃えるのも，試してみる
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -145,10 +147,10 @@ model;
     q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
 
     // (6) Gatherer: Budget constraint
-    q * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R - Rp) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp*bp(-1);
+    q * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R - Rp) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
 
     //
-    Rp = 1/betap + omega;
+    Rp = (1/betap + omega);
 
     // (7) Gatherer: Euler's equation of Asset pricing
     q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
@@ -160,7 +162,7 @@ model;
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi = ((rho - nu) / eta) + eb;
+    phi = ((rho - nu) / eta) * (1 + eb);
 
     // (11) FI: Aggregate loan with credit policy
     b = N / phi;
@@ -170,7 +172,7 @@ model;
        + gamma_N * (log(N(-1)/N_ss));
 
     // (13) FI: growth rate of net worth
-    zeta = (R/phi(-1) + Rp) / (1 + Rp/phi);
+    zeta = (R - Rp) / phi(-1) + Rp;
 
     // (14) FI: Growth rate of lending
     chi = phi(-1) / phi * zeta;
@@ -179,7 +181,7 @@ model;
     N = Ne + Nn;
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = theta * (R(+1)*N/phi - Rp(+1)*(N(+1)/phi(+1)-N)) *(1-eN);
+    Ne = (theta * ((R - Rp) / phi(-1) + Rp) * N(-1))*(1-eN);
 
     // (17) FI: New bankers' net worth
     Nn = omega * bp(-1);
@@ -191,9 +193,10 @@ model;
     k + kp = Kbar;
 
     // (20) Market clearing: Bond
-    b = N + bp(-1);
+    b = N + bp;
 
     eN = 0.8*eN(-1) + ep_N;
+
 end;
 
 initval;
@@ -228,6 +231,7 @@ end;
 
 steady;
 check;
-stoch_simul(order=1,irf=100,ar=0,TeX)//,nograph)
+
+stoch_simul(order=1,irf=100,ar=0,TeX) //,nograph)
 q k R b x kp N xp bp Y phi eb eN
 ;
