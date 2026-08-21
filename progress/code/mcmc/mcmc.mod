@@ -4,6 +4,7 @@ var
     q
     k
     R
+    Rp
     b
     x
     varphi  $\varphi$
@@ -23,18 +24,14 @@ var
     xp      $x^\prime$
     bp      $b^\prime$
     Y
-    
-    eb      $\epsilon^b$
-
-    N_obs
-    Y_obs
-   // q_obs
+    eb      $\varepsilon^b$
+    eN
 ;
 
 varexo 
-    eN      $e^N$
-    eY      $e^Y$
-   // eq      $e^q$
+    ep_N
+    eY
+    eq
 ;
 
 parameters
@@ -48,18 +45,18 @@ parameters
     omega       // Transfer rate to new bankers
     rho         // Parameter in FI's leverage equation
     Kbar        // Total real estate
-    eb_ss       // Policy in steady state
 
     // Substitute Parameters
-    A           // rho*betaFI*theta^2
-    B           // -rho*theta*(1+betaFI)-omega*(1-theta)*betaFI
-    C           // rho-omega*(1-theta)*(1-betaFI/betap)
+    A           
+    B           
+    C           
 
     // Policy Parameters
-    gamma_q    $\gamma_q$      // Policy reaction to real estate price
-    gamma_N    $\gamma_N$   //
+    gamma_q     
+    gamma_N
 
     // Steady State
+    Rp_ss       
     q_ss
     k_ss
     R_ss
@@ -80,7 +77,6 @@ parameters
     Nn_ss
     Y_ss
 ;
-
     // values
     beta    = 0.980;
     betap   = 0.990;
@@ -91,33 +87,42 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = 0.5;
-    gamma_N = 0.5;
-    Kbar    = 6.62;
-    A       = rho*betaFI*theta^2;
-    B       = - rho*theta*(1+betaFI) - omega*(1-theta)*betaFI;
-    C       = rho - omega*(1-theta)*(1-betaFI/betap);
+    gamma_q = 0;
+    gamma_N = 0;
+    Kbar    = 6;
 
-    // Stady state Values
+    // Steady state calculation
     eb_ss           = 0;
+    Rp_ss           = 1/betap + omega;
+    
+    // Updated Coefficients for the quadratic equation
+    A               = rho * betaFI * theta^2;
+    B               = -rho * theta * (1 + betaFI * (1 + omega)) - omega * (1 - theta) * betaFI;
+    C               = rho * (1 + omega) - omega * (1 - theta) * (1 - betaFI * Rp_ss);
+
+    // Steady state Values
     zeta_ss         = (-B - sqrt((B^2 - 4*A*C))) / (2*A);
-    phi_ss          = (1-theta*zeta_ss) / omega;
-    eta_ss          = (1-theta)/(1-betaFI*theta*zeta_ss);
+    phi_ss          = omega / (1 - theta*zeta_ss + omega);
+    eta_ss          = (1 - theta) / (1 - betaFI*theta*zeta_ss);
     chi_ss          = zeta_ss;
-    nu_ss           = eta_ss * betaFI * (zeta_ss-1/betap)/phi_ss;
-    R_ss            = (zeta_ss-1/betap)/phi_ss + 1/betap;
+    nu_ss           = eta_ss * betaFI * (zeta_ss - Rp_ss) * phi_ss;
+    R_ss            = (zeta_ss - Rp_ss) * phi_ss + Rp_ss;
     q_ss            = a*R_ss / (R_ss-1);
     kp_ss           = (q_ss*(1-betap)/(alpha*betap))^(1/(alpha-1));
     k_ss            = Kbar - kp_ss;
     b_ss            = q_ss*k_ss/R_ss;
-    N_ss            = b_ss/phi_ss;
-    Nn_ss           = omega*b_ss;
+    
+    N_ss            = b_ss * phi_ss;
+    bp_ss           = b_ss - N_ss;
+    Nn_ss           = omega * bp_ss;
     Ne_ss           = N_ss - Nn_ss;
+    
     x_ss            = c*k_ss;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    bp_ss           = b_ss*(1-phi_ss)/phi_ss;
-    xp_ss           = kp_ss^alpha + (1-theta-omega)*b_ss - bp_ss*(1/betap - 1);
+    
+    // Updated Gatherer consumption steady state
+    xp_ss           = kp_ss^alpha + (1-theta)*zeta_ss*N_ss + (Rp_ss - 1 - omega)*bp_ss;
     Y_ss            = x_ss + xp_ss;
 
 model;

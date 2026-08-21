@@ -9,9 +9,7 @@ var
     x
     varphi  $\varphi$
     mu      $\mu$
-    
     kp      $k^\prime$
-    
     chi     $\chi$
     nu      $\nu$
     eta     $\eta$
@@ -20,18 +18,19 @@ var
     phi     $\phi$
     Ne      $N_e$
     Nn      $N_n$
-    
     xp      $x^\prime$
     bp      $b^\prime$
     Y
-    eb      $\varepsilon^b$
-    eN
+    eb      $\epsilon^b$
+    eN      $e^N$
+    eY      $e^Y$
+    eq      $e^q$
 ;
 
 varexo 
     ep_N
-    eY
-    eq
+    ep_Y
+    ep_q
 ;
 
 parameters
@@ -132,10 +131,6 @@ model;
 
     // (2) Farmer: Borrowing constraint
     R * b = q(+1) * k;
-    //Rのタイミングを当期にしたら成功．ただしFIのRは来期なので，
-    //情報の非対称性によってFIが事前に知っていると想定する．
-    //予算制約式，オイラー方程式のRとRpのタイミングを修正する（後で）
-    //FIをKMにRのタイミングを揃えるのも，試してみる
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -172,7 +167,7 @@ model;
        + gamma_N * (log(N(-1)/N_ss));
 
     // (13) FI: growth rate of net worth
-    zeta = (R(-1) - Rp(-1)) / phi(-1) + Rp;
+    zeta = (R(-1) - Rp(-1)) / phi(-1) + Rp(-1);
 
     // (14) FI: Growth rate of lending
     chi = phi(-1) / phi * zeta;
@@ -181,7 +176,7 @@ model;
     N = Ne + Nn;
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = (theta * ((R - Rp) / phi(-1) + Rp) * N(-1))*(1-eN);
+    Ne = (theta * ((R(-1) - Rp(-1)) / phi(-1) + Rp(-1)) * N(-1))*(1-eN);
 
     // (17) FI: New bankers' net worth
     Nn = omega * bp(-1);
@@ -232,6 +227,6 @@ end;
 steady;
 check;
 
-stoch_simul(order=1,irf=100,ar=0,TeX) //,nograph)
+stoch_simul(order=1,irf=100,ar=0,TeX,nograph)
 q k R b x kp N xp bp Y phi eb eN
 ;

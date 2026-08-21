@@ -1,17 +1,15 @@
 close all
 
 var
-    q
-    k
+    q                       // Land price
+    k                       // 
     R
     Rp
     b
     x
     varphi  $\varphi$
     mu      $\mu$
-    
     kp      $k^\prime$
-    
     chi     $\chi$
     nu      $\nu$
     eta     $\eta$
@@ -20,18 +18,19 @@ var
     phi     $\phi$
     Ne      $N_e$
     Nn      $N_n$
-    
     xp      $x^\prime$
     bp      $b^\prime$
     Y
-    eb      $\varepsilon^b$
-    eN
+    eb      $\epsilon^b$
+    eN      $e^N$
+    eY      $e^Y$
+    eq      $e^q$
 ;
 
 varexo 
     ep_N
-    eY
-    eq
+    ep_Y
+    ep_q
 ;
 
 parameters
@@ -45,6 +44,7 @@ parameters
     omega       // Transfer rate to new bankers
     rho         // Parameter in FI's leverage equation
     Kbar        // Total real estate
+    s           // Shockの自己回帰係数
 
     // Substitute Parameters
     A           
@@ -87,9 +87,10 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = 0;
-    gamma_N = 0;
+    gamma_q = 2;
+    gamma_N = -1;
     Kbar    = 6;
+    s       = 0.8;
 
     // Steady state calculation
     eb_ss           = 0;
@@ -145,53 +146,60 @@ model;
     // (6) Gatherer: Budget constraint
     q * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R - Rp) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
 
-    //
+    // (7) Gatherer: deposit interest rate
     Rp = (1/betap + omega);
 
-    // (7) Gatherer: Euler's equation of Asset pricing
+    // (8) Gatherer: Euler's equation of Asset pricing
     q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
 
-    // (8) FI: Marginal value of extending loans
+    // (9) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
 
-    // (9) FI: Marginal value of net worth
+    // (10) FI: Marginal value of net worth
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
-    // (10) FI: Leverage ratio
+    // (11) FI: Leverage ratio
     phi = ((rho - nu) / eta) * (1 + eb);
 
-    // (11) FI: Aggregate loan with credit policy
+    // (12) FI: Aggregate loan with credit policy
     b = N / phi;
 
-    // (12) Credit policy rule
+    // (13) Credit policy rule
     eb = gamma_q * (log(q(-1)/q_ss)) 
        + gamma_N * (log(N(-1)/N_ss));
 
-    // (13) FI: growth rate of net worth
+    // (14) FI: growth rate of net worth
     zeta = (R(-1) - Rp(-1)) / phi(-1) + Rp(-1);
 
-    // (14) FI: Growth rate of lending
+    // (15) FI: Growth rate of lending
     chi = phi(-1) / phi * zeta;
 
-    // (15) FI: Total net worth
+    // (16) FI: Total net worth
     N = Ne + Nn;
 
-    // (16) FI: Existing bankers' net worth with NPL shock
+    // (17) FI: Existing bankers' net worth with NPL shock
     Ne = (theta * ((R(-1) - Rp(-1)) / phi(-1) + Rp(-1)) * N(-1))*(1-eN);
 
-    // (17) FI: New bankers' net worth
+    // (18) FI: New bankers' net worth
     Nn = omega * bp(-1);
 
-    // (18) Market clearing: Total output
+    // (19) Market clearing: Total output
     Y = x + xp;
 
-    // (19) Market clearing: Capital
+    // (20) Market clearing: Capital
     k + kp = Kbar;
 
-    // (20) Market clearing: Bond
+    // (21) Market clearing: Bond
     b = N + bp;
 
-    eN = 0.8*eN(-1) + ep_N;
+    // (22) Shock: bank capotal
+    eN = s*eN(-1) + ep_N;
+
+    // (23) Shock: output
+    eY = s*eY(-1) + ep_Y;
+
+    // (22) Shock: land price
+    eq = s*eq(-1) + ep_q;
 
 end;
 
@@ -221,13 +229,13 @@ end;
 
 shocks;
     var ep_N = 0.01^2;
-   // var eY = 0.01^2;
-  //  var eq = 0.01^2;
+   // var ep_Y = 0.01^2;
+  //  var ep_q = 0.01^2;
 end;
 
 steady;
 check;
 
-stoch_simul(order=1,irf=100,ar=0,TeX) //,nograph)
-q k R b x kp N xp bp Y phi eb eN
+stoch_simul(order=1,irf=100,ar=0,TeX)//,nograph)
+q k b x kp N xp bp Y phi eb eN
 ;
