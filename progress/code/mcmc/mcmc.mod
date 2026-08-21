@@ -159,7 +159,7 @@ q  = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
     // (10) FI: Leverage ratio
-    phi * (1 + eb) = (eta / (rho - nu));
+    phi = (eta / (rho - nu)) * (1 + eb);
 
     // (11) FI: Aggregate loan with credit policy
     b = phi * N;
