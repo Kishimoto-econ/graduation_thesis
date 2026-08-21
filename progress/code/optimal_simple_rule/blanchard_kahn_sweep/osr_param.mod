@@ -156,7 +156,7 @@ model;
     q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
 
     // (8) FI: Marginal value of extending loans
-    nu = (1 - theta) * betaFI * (R(+1) - Rp(+1)) + betaFI * theta * chi(+1) * nu(+1);
+    nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
 
     // (9) FI: Marginal value of net worth
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
@@ -172,7 +172,7 @@ model;
        + gamma_N * (log(N(-1)/N_ss));
 
     // (13) FI: growth rate of net worth
-    zeta = (R - Rp) / phi(-1) + Rp;
+    zeta = (R(-1) - Rp(-1)) / phi(-1) + Rp(-1);
 
     // (14) FI: Growth rate of lending
     chi = phi(-1) / phi * zeta;
@@ -181,7 +181,7 @@ model;
     N = Ne + Nn;
 
     // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = (theta * ((R - Rp) / phi(-1) + Rp) * N(-1))*(1-eN);
+    Ne = (theta * ((R(-1) - Rp(-1)) / phi(-1) + Rp(-1)) * N(-1))*(1-eN);
 
     // (17) FI: New bankers' net worth
     Nn = omega * bp(-1);
