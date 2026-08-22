@@ -246,10 +246,9 @@ estimated_params;
     
     stderr ep_N, inv_gamma_pdf, 0.01, 0.005;
     stderr ep_Y, inv_gamma_pdf, 0.01, 0.005;
-    stderr ep_q, inv_gamma_pdf, 0.01, 0.005;
 end;
 
-varobs N_obs Y_obs q_obs;
+varobs N_obs Y_obs;
 
 identification;
 
