@@ -21,7 +21,7 @@ var
     xp      $x^\prime$
     bp      $b^\prime$
     Y
-    eb      $\epsilon^b$
+    eb      $\epsilon$
     eN      $e^N$
     eY      $e^Y$
     eq      $e^q$
@@ -87,8 +87,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = 2;
-    gamma_N = -1;
+    gamma_q = 0.2;
+    gamma_N = -0.1;
     Kbar    = 6;
     s       = 0.8;
 
@@ -129,10 +129,10 @@ parameters
 model;
 
     // (1) Farmer: Budget constraint
-    q * (k - k(-1)) * (1-eq) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
+    q * (1-eq) * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R * b = q(+1) * k;
+    R * b = q(+1) * (1-eq(+1)) * k;
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -141,16 +141,18 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)) + mu) * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
+    q * (1-eq) * (1 + varphi) * (1-eq) + beta * c * varphi(+1)
+    = beta * (1 + varphi(+1)) * ((a + c) * (1-eY(+1))
+    + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
 
     // (6) Gatherer: Budget constraint
-    q * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R - Rp) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
+    q * (1-eq) * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R(-1) - Rp(-1)) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
 
     // (7) Gatherer: deposit interest rate
     Rp = (1/betap + omega);
 
     // (8) Gatherer: Euler's equation of Asset pricing
-    q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
+    q * (1-eq) = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
 
     // (9) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
@@ -228,8 +230,8 @@ initval;
 end;
 
 shocks;
-    var ep_N = 0.01^2;
-   // var ep_Y = 0.01^2;
+    //var ep_N = 0.01^2;
+    var ep_Y = 0.01^2;
   //  var ep_q = 0.01^2;
 end;
 
