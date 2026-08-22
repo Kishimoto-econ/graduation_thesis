@@ -24,17 +24,11 @@ var
     eb      $\epsilon$
     eN      $e^N$
     eY      $e^Y$
-    eq      $e^q$
-
-    N_obs
-    Y_obs
-    q_obs
 ;
 
 varexo 
-    ep_N    $\varepsilon^N$
-    ep_Y    $\varepsilon^Y$
-    ep_q    $\varepsilon^q$
+    ep_N
+    ep_Y
 ;
 
 parameters
@@ -56,8 +50,8 @@ parameters
     C           
 
     // Policy Parameters
-    gamma_q     $\gamma^q$ 
-    gamma_N     $\gamma^N$
+    gamma_q     
+    gamma_N
 
     // Steady State
     Rp_ss       
@@ -125,22 +119,18 @@ parameters
     x_ss            = c*k_ss;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-
+    
+    // Updated Gatherer consumption steady state
     xp_ss           = kp_ss^alpha + (1-theta)*zeta_ss*N_ss + (Rp_ss - 1 - omega)*bp_ss;
     Y_ss            = x_ss + xp_ss;
 
 model;
 
-    // 観測方程式
-    N_obs = log(N) - log(N(-1));
-    Y_obs = log(Y) - log(Y(-1));
-    q_obs = log(q) - log(q(-1));
-
     // (1) Farmer: Budget constraint
-    q * (1-eq) * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
+    q * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R * b = q(+1) * (1-eq(+1)) * k;
+    R * b = q(+1) * k;
 
     // (3) Farmer: Consumption
     x = c * k(-1);
@@ -149,18 +139,18 @@ model;
     1 + varphi = (beta * (1 + varphi(+1)) + mu) * R;
 
     // (5) Farmer: Euler's equation of asset price
-    q * (1-eq) * (1 + varphi) * (1-eq) + beta * c * varphi(+1)
+    q * (1 + varphi) + beta * c * varphi(+1)
     = beta * (1 + varphi(+1)) * ((a + c) * (1-eY(+1))
-    + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
+    + q(+1)) + mu * q(+1);
 
     // (6) Gatherer: Budget constraint
-    q * (1-eq) * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R(-1) - Rp(-1)) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
+    q * (kp-kp(-1)) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R(-1) - Rp(-1)) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
 
     // (7) Gatherer: deposit interest rate
     Rp = (1/betap + omega);
 
     // (8) Gatherer: Euler's equation of Asset pricing
-    q * (1-eq) = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
+    q = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1));
 
     // (9) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
@@ -208,9 +198,6 @@ model;
     // (23) Shock: output
     eY = s*eY(-1) + ep_Y;
 
-    // (22) Shock: land price
-    eq = s*eq(-1) + ep_q;
-
 end;
 
 initval;
@@ -240,11 +227,11 @@ end;
 shocks;
     var ep_N = 0.01^2;
     var ep_Y = 0.01^2;
-    var ep_q = 0.01^2;
 end;
 
 steady;
 check;
+
 
 estimated_params;
     gamma_q, normal_pdf, 0, 5;
