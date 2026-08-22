@@ -89,7 +89,7 @@ parameters
     rho     = 0.381;
     gamma_q = 0.2;
     gamma_N = -0.1;
-    Kbar    = 6;
+    Kbar    = 4.14;
     s       = 0.8;
 
     // Steady state calculation

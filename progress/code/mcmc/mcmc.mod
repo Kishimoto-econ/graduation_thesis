@@ -1,17 +1,15 @@
 close all
 
 var
-    q
-    k
+    q                       // Land price
+    k                       // 
     R
     Rp
     b
     x
     varphi  $\varphi$
     mu      $\mu$
-    
     kp      $k^\prime$
-    
     chi     $\chi$
     nu      $\nu$
     eta     $\eta$
@@ -20,18 +18,23 @@ var
     phi     $\phi$
     Ne      $N_e$
     Nn      $N_n$
-    
     xp      $x^\prime$
     bp      $b^\prime$
     Y
-    eb      $\varepsilon^b$
-    eN
+    eb      $\epsilon$
+    eN      $e^N$
+    eY      $e^Y$
+    eq      $e^q$
+
+    N_obs
+    Y_obs
+    q_obs
 ;
 
 varexo 
-    ep_N
-    eY
-    eq
+    ep_N    $\varepsilon^N$
+    ep_Y    $\varepsilon^Y$
+    ep_q    $\varepsilon^q$
 ;
 
 parameters
@@ -45,6 +48,7 @@ parameters
     omega       // Transfer rate to new bankers
     rho         // Parameter in FI's leverage equation
     Kbar        // Total real estate
+    s           // Shockの自己回帰係数
 
     // Substitute Parameters
     A           
@@ -52,8 +56,8 @@ parameters
     C           
 
     // Policy Parameters
-    gamma_q     
-    gamma_N
+    gamma_q     $\gamma^q$ 
+    gamma_N     $\gamma^N$
 
     // Steady State
     Rp_ss       
@@ -89,7 +93,8 @@ parameters
     rho     = 0.381;
     gamma_q = 0;
     gamma_N = 0;
-    Kbar    = 6;
+    Kbar    = 4.14;
+    s       = 0.8;
 
     // Steady state calculation
     eb_ss           = 0;
@@ -120,86 +125,96 @@ parameters
     x_ss            = c*k_ss;
     varphi_ss       = (beta*(a+c)-a) / (a*(1-beta));
     mu_ss           = (1+varphi_ss)*(1/R_ss - beta);
-    
-    // Updated Gatherer consumption steady state
+
     xp_ss           = kp_ss^alpha + (1-theta)*zeta_ss*N_ss + (Rp_ss - 1 - omega)*bp_ss;
     Y_ss            = x_ss + xp_ss;
 
 model;
-    
+
     // 観測方程式
     N_obs = log(N) - log(N(-1));
     Y_obs = log(Y) - log(Y(-1));
-//    q_obs = log(q) - log(q(-1));
+    q_obs = log(q) - log(q(-1));
 
     // (1) Farmer: Budget constraint
-    //q * (k - k(-1)) * (1-eq) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
-    q * (k - k(-1)) + R * b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
+    q * (1-eq) * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
     // (2) Farmer: Borrowing constraint
-    R * b(-1) = q * k(-1);
+    R * b = q(+1) * (1-eq(+1)) * k;
 
     // (3) Farmer: Consumption
     x = c * k(-1);
 
     // (4) Farmer: Euler's equation of self-consumption constraints
-    1 + varphi = (beta * (1 + varphi(+1)))*R(+1) + mu * R;
+    1 + varphi = (beta * (1 + varphi(+1)) + mu) * R;
 
     // (5) Farmer: Euler's equation of asset price
-   // q * (1 + varphi) * (1-eq) + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
-q * (1 + varphi)  + beta * c * varphi(+1) = beta * (1 + varphi(+1)) * ((1-eY)*(a + c) + q(+1)) + mu * q(+1);
+    q * (1-eq) * (1 + varphi) * (1-eq) + beta * c * varphi(+1)
+    = beta * (1 + varphi(+1)) * ((a + c) * (1-eY(+1))
+    + q(+1) * (1-eq(+1))) + mu * q(+1) * (1-eq(+1));
 
     // (6) Gatherer: Budget constraint
- //   q * (kp-kp(-1)) * (1-eq) + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
-q * (kp-kp(-1))  + bp(-1) / betap + xp = kp(-1)^alpha * (1-eY) + (1-theta-omega) * b(-1) + bp;
+    q * (1-eq) * (kp-kp(-1)) * (1-eq) + bp + xp = kp(-1)^alpha * (1-eY) + (1-theta)*((R(-1) - Rp(-1)) / phi(-1) + Rp) * N(-1) - omega*bp(-1) + Rp(-1)*bp(-1);
 
-    // (7) Gatherer: Euler's equation of Asset pricing
-    //q * (1-eq) = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
-q  = betap * ((1-eY)*alpha * kp^(alpha - 1) + q(+1));
+    // (7) Gatherer: deposit interest rate
+    Rp = (1/betap + omega);
 
-    // (8) FI: Marginal value of extending loans
-    nu = (1 - theta) * betaFI * (R(+1) - 1/betap) + betaFI * theta * chi(+1) * nu(+1);
+    // (8) Gatherer: Euler's equation of Asset pricing
+    q * (1-eq) = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
 
-    // (9) FI: Marginal value of net worth
+    // (9) FI: Marginal value of extending loans
+    nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
+
+    // (10) FI: Marginal value of net worth
     eta = (1 - theta) + betaFI * theta * zeta(+1) * eta(+1);
 
-    // (10) FI: Leverage ratio
-    phi = (eta / (rho - nu)) * (1 + eb);
+    // (11) FI: Leverage ratio
+    phi = ((rho - nu) / eta) * (1 + eb);
 
-    // (11) FI: Aggregate loan with credit policy
-    b = phi * N;
+    // (12) FI: Aggregate loan with credit policy
+    b = N / phi;
 
-    // (12) Credit policy rule
-    eb = gamma_q * (log(q(-1)) - log(q_ss)) 
-       + gamma_N * (log(N(-1)) - log(N_ss));
+    // (13) Credit policy rule
+    eb = gamma_q * (log(q(-1)/q_ss)) 
+       + gamma_N * (log(N(-1)/N_ss));
 
-    // (13) FI: growth rate of net worth
-    zeta = (R(+1) - 1 / betap) * phi + 1 / betap;
+    // (14) FI: growth rate of net worth
+    zeta = (R(-1) - Rp(-1)) / phi(-1) + Rp(-1);
 
-    // (14) FI: Growth rate of lending
-    chi = phi / phi(-1) * zeta;
+    // (15) FI: Growth rate of lending
+    chi = phi(-1) / phi * zeta;
 
-    // (15) FI: Total net worth
-    N*(1-eN) = (Ne + Nn);
+    // (16) FI: Total net worth
+    N = Ne + Nn;
 
-    // (16) FI: Existing bankers' net worth with NPL shock
-    Ne = theta * ((R - 1/betap) * phi(-1) + 1/betap) * N(-1);
+    // (17) FI: Existing bankers' net worth with NPL shock
+    Ne = (theta * ((R(-1) - Rp(-1)) / phi(-1) + Rp(-1)) * N(-1))*(1-eN);
 
-    // (17) FI: New bankers' net worth
-    Nn = omega * b(-1);
+    // (18) FI: New bankers' net worth
+    Nn = omega * bp(-1);
 
-    // (18) Market clearing: Total output
-    Y = (1-eY)*x + (1-eY)*xp;
+    // (19) Market clearing: Total output
+    Y = x + xp;
 
-    // (19) Market clearing: Capital
+    // (20) Market clearing: Capital
     k + kp = Kbar;
 
-    // (20) Market clearing: Bond
-    b + bp = N;
+    // (21) Market clearing: Bond
+    b = N + bp;
+
+    // (22) Shock: bank capotal
+    eN = s*eN(-1) + ep_N;
+
+    // (23) Shock: output
+    eY = s*eY(-1) + ep_Y;
+
+    // (22) Shock: land price
+    eq = s*eq(-1) + ep_q;
 
 end;
 
 initval;
+    Rp      = Rp_ss;
     q       = q_ss;
     k       = k_ss;
     R       = R_ss;
@@ -223,29 +238,24 @@ initval;
 end;
 
 shocks;
-    var eN = 0.01^2;
-    var eY = 0.01^2;
-  //  var eq = 0.01^2;
+    var ep_N = 0.01^2;
+    var ep_Y = 0.01^2;
+    var ep_q = 0.01^2;
 end;
 
 steady;
 check;
 
 estimated_params;
-    gamma_q, normal_pdf, 0, 1;
-    gamma_N, normal_pdf, 0, 1; 
+    gamma_q, normal_pdf, 0, 5;
+    gamma_N, normal_pdf, 0, 5; 
     
-    stderr eN, inv_gamma_pdf, 0.01, 0.005;
-    stderr eY, inv_gamma_pdf, 0.01, 0.005;
-//    stderr eq, inv_gamma_pdf, 0.01, 0.005;
+    stderr ep_N, inv_gamma_pdf, 0.01, 0.005;
+    stderr ep_Y, inv_gamma_pdf, 0.01, 0.005;
+    stderr ep_q, inv_gamma_pdf, 0.01, 0.005;
 end;
 
-estimated_params_init;
-    gamma_q, 0.5;
-    gamma_N, 0.5;
-end;
-
-varobs N_obs Y_obs;// q_obs;
+varobs N_obs Y_obs q_obs;
 
 identification;
 
