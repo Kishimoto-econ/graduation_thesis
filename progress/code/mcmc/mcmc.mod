@@ -24,11 +24,14 @@ var
     eb      $\epsilon$
     eN      $e^N$
     eY      $e^Y$
+    
+    N_obs
+    Y_obs
 ;
 
 varexo 
-    ep_N
-    ep_Y
+    ep_N    $\varepsilon^N$
+    ep_Y    $\varepsilon^Y$
 ;
 
 parameters
@@ -50,8 +53,8 @@ parameters
     C           
 
     // Policy Parameters
-    gamma_q     
-    gamma_N
+    gamma_q     $\gamma^q$
+    gamma_N     $\gamma^N$
 
     // Steady State
     Rp_ss       
@@ -125,6 +128,10 @@ parameters
     Y_ss            = x_ss + xp_ss;
 
 model;
+
+    // 観測変数
+    N_obs = log(N) - log(N(-1));
+    Y_obs = log(Y) - log(Y(-1));
 
     // (1) Farmer: Budget constraint
     q * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
