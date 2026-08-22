@@ -24,11 +24,14 @@ var
     eb      $\epsilon$
     eN      $e^N$
     eY      $e^Y$
+    
+    N_obs
+    Y_obs
 ;
 
 varexo 
-    ep_N
-    ep_Y
+    ep_N    $\varepsilon^N$
+    ep_Y    $\varepsilon^Y$
 ;
 
 parameters
@@ -50,8 +53,8 @@ parameters
     C           
 
     // Policy Parameters
-    gamma_q     
-    gamma_N
+    gamma_q     $\gamma^q$
+    gamma_N     $\gamma^N$
 
     // Steady State
     Rp_ss       
@@ -126,6 +129,10 @@ parameters
 
 model;
 
+    // 観測変数
+    N_obs = log(N) - log(N(-1));
+    Y_obs = log(Y) - log(Y(-1));
+
     // (1) Farmer: Budget constraint
     q * (k - k(-1)) + R(-1)* b(-1) + x = (1-eY) * (a+c) * k(-1) + b;
 
@@ -150,7 +157,7 @@ model;
     Rp = (1/betap + omega);
 
     // (8) Gatherer: Euler's equation of Asset pricing
-    q * (1-eq) = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1) * (1-eq(+1)));
+    q = betap * ((1-eY(+1)) * alpha * kp^(alpha - 1) + q(+1));
 
     // (9) FI: Marginal value of extending loans
     nu = (1 - theta) * betaFI * (R - Rp) + betaFI * theta * chi(+1) * nu(+1);
@@ -198,9 +205,6 @@ model;
     // (23) Shock: output
     eY = s*eY(-1) + ep_Y;
 
-    // (22) Shock: land price
-    eq = s*eq(-1) + ep_q;
-
 end;
 
 initval;
@@ -229,12 +233,48 @@ end;
 
 shocks;
     var ep_N = 0.01^2;
-   // var ep_Y = 0.01^2;
+    var ep_Y = 0.01^2;
 end;
 
 steady;
 check;
 
-stoch_simul(order=1,irf=100,ar=0,TeX)//,nograph)
-q k b x kp N xp bp Y phi eb eN
-;
+
+estimated_params;
+    gamma_q, normal_pdf, 0, 5;
+    gamma_N, normal_pdf, 0, 5; 
+    
+    stderr ep_N, inv_gamma_pdf, 0.01, 0.005;
+    stderr ep_Y, inv_gamma_pdf, 0.01, 0.005;
+end;
+
+varobs N_obs Y_obs;
+
+identification;
+
+estimation(datafile='dset.mat', mh_replic=125000,
+mh_drop = 0.2, mh_nblocks=2, mh_jscale=0.8, mode_compute = 4, mode_check, Tex);
+
+// save figures
+FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\mcmc\output";
+FigHandles =  findobj('type','figure');
+nFig = length(FigHandles);
+for iFig = 1:nFig
+  h = FigHandles(iFig);
+  FigName  = get(h, 'Name');
+  savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
+
+// パラメータの事後標準偏差を表示
+disp('--- Parameters Post. Std ---')
+fields = fieldnames(oo_.posterior_std.parameters);
+for i = 1:length(fields)
+    fprintf('%s: %f\n', fields{i}, oo_.posterior_std.parameters.(fields{i}));
+end
+
+// ショックの事後標準偏差を表示
+disp('--- Shocks Post. Std ---')
+fields_sh = fieldnames(oo_.posterior_std.shocks_std);
+for i = 1:length(fields_sh)
+    fprintf('%s: %f\n', fields_sh{i}, oo_.posterior_std.shocks_std.(fields_sh{i}));
+end

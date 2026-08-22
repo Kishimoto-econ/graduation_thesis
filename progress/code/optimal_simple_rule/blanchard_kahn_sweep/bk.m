@@ -3,14 +3,14 @@ close all
 
 dynare osr_param.mod;
 
-gamma_Y_grid = -5:0.25:5;
+gamma_q_grid = -5:0.25:5;
 gamma_N_grid = -5:0.25:5;
 
-BK = zeros(length(gamma_Y_grid),length(gamma_N_grid));
+BK = zeros(length(gamma_q_grid),length(gamma_N_grid));
 
-for i = 1:length(gamma_Y_grid)
+for i = 1:length(gamma_q_grid)
 
-    set_param_value('gamma_Y',gamma_Y_grid(i));
+    set_param_value('gamma_q',gamma_q_grid(i));
 
     for j = 1:length(gamma_N_grid)
 
@@ -31,15 +31,15 @@ end
 figure
 hold on
 
-for i = 1:length(gamma_Y_grid)
+for i = 1:length(gamma_q_grid)
     for j = 1:length(gamma_N_grid)
         if BK(i,j)==0
-            plot(gamma_Y_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
+            plot(gamma_q_grid(i),gamma_N_grid(j),'.b','MarkerSize',15)
         end
     end
 end
 
-xlabel('\gamma_Y')
+xlabel('\gamma_q')
 ylabel('\gamma_N')
 xlim([-5 5])
 ylim([-5 5])
@@ -48,5 +48,5 @@ grid on
 box on
 
 cd C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\blanchard_kahn_sweep\output
-saveas(gcf,'bk_YN.png')
+saveas(gcf,'bk.png')
 cd C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\blanchard_kahn_sweep

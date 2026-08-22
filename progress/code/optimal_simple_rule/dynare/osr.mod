@@ -225,7 +225,7 @@ initval;
 end;
 
 shocks;
-   // var ep_N = 0.01^2;
+    var ep_N = 0.01^2;
     var ep_Y = 0.01^2;
 end;
 
@@ -235,6 +235,16 @@ check;
 stoch_simul(order=1,irf=100,ar=0,TeX)
 q k b x kp N xp bp Y phi eb eN
 ;
+
+// save figures
+FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\dynare\output_normal";
+FigHandles =  findobj('type','figure');
+nFig = length(FigHandles);
+for iFig = 1:nFig
+  h = FigHandles(iFig);
+  FigName  = get(h, 'Name');
+  savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
 
 optim_weights;
     Y   1;
@@ -247,6 +257,16 @@ osr_params
     gamma_N
 ;
 
-osr(irf=200)
+osr(irf=100)
 q k b x kp N xp bp Y phi eb eN eY
 ;
+
+// save figures
+FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\dynare\output_osr";
+FigHandles =  findobj('type','figure');
+nFig = length(FigHandles);
+for iFig = 1:nFig
+  h = FigHandles(iFig);
+  FigName  = get(h, 'Name');
+  savefig(h, fullfile(FolderName, [FigName,'.fig']));
+end
