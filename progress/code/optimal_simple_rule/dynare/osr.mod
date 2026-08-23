@@ -85,8 +85,8 @@ parameters
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
-    gamma_q = 0;
-    gamma_N = 0;
+    gamma_q = 2.1298;
+    gamma_N = 0.6461;
     Kbar    = 4.14;
     s       = 0.8;
 
@@ -225,20 +225,18 @@ initval;
 end;
 
 shocks;
-    var ep_N = 0.01^2;
-    var ep_Y = 0.01^2;
+    var ep_N = 0.005180^2;
+    var ep_Y = 0.026622^2;
 end;
 
 steady;
 check;
 
-stoch_simul(order=1,irf=100,ar=0,TeX)
+stoch_simul(order=1,irf=150,ar=0,TeX)
 q b N bp Y phi eb eN;
 
 optim_weights;
     Y   1;
-    q   1;
-    N   1;
 end;
 
 osr_params

@@ -224,11 +224,6 @@ initval;
     eb      = eb_ss;
 end;
 
-shocks;
-    var ep_N = 0.01^2;
-   // var ep_Y = 0.01^2;
-end;
-
 steady;
 check;
 
