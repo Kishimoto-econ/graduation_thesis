@@ -80,8 +80,8 @@ parameters
     betap   = 0.990;
     betaFI  = 0.985;
     alpha   = 0.495;
-    a       = 0.438;
-    c       = 0.00921;
+    a       = 0.445;
+    c       = 0.00937;
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;

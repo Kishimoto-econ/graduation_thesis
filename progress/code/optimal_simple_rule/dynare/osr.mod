@@ -80,8 +80,8 @@ parameters
     betap   = 0.990;
     betaFI  = 0.985;
     alpha   = 0.495;
-    a       = 0.438;
-    c       = 0.00921;
+    a       = 0.445;
+    c       = 0.00937;
     theta   = 0.972;
     omega   = 0.00200;
     rho     = 0.381;
@@ -233,18 +233,7 @@ steady;
 check;
 
 stoch_simul(order=1,irf=100,ar=0,TeX)
-q k b x kp N xp bp Y phi eb eN
-;
-
-// save figures
-FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\dynare\output_normal";
-FigHandles =  findobj('type','figure');
-nFig = length(FigHandles);
-for iFig = 1:nFig
-  h = FigHandles(iFig);
-  FigName  = get(h, 'Name');
-  savefig(h, fullfile(FolderName, [FigName,'.fig']));
-end
+q b N bp Y phi eb eN;
 
 optim_weights;
     Y   1;
@@ -258,15 +247,5 @@ osr_params
 ;
 
 osr(irf=100)
-q k b x kp N xp bp Y phi eb eN eY
+q b N bp Y phi eb eN eY
 ;
-
-// save figures
-FolderName = "C:\Users\Kohsu\Desktop\graduation_thesis\progress\code\optimal_simple_rule\dynare\output_osr";
-FigHandles =  findobj('type','figure');
-nFig = length(FigHandles);
-for iFig = 1:nFig
-  h = FigHandles(iFig);
-  FigName  = get(h, 'Name');
-  savefig(h, fullfile(FolderName, [FigName,'.fig']));
-end
