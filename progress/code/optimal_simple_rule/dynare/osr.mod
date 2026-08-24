@@ -233,7 +233,7 @@ steady;
 check;
 
 stoch_simul(order=1,irf=150,ar=0,TeX)
-q b N bp Y phi eb eN;
+q b N bp Y phi eb eN eY;
 
 optim_weights;
     Y   1;
@@ -244,6 +244,6 @@ osr_params
     gamma_N
 ;
 
-osr(irf=100)
+osr(irf=150)
 q b N bp Y phi eb eN eY
 ;
